@@ -1,0 +1,154 @@
+/* Styles for EquipePage */
+.equipe-page {
+    background-color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.hero-section-equipe {
+    position: relative;
+    height: 65vh; /* Adjust height as needed */
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #fff;
+}
+
+.hero-section-equipe::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4); /* Dark overlay */
+    z-index: 1;
+}
+
+.hero-content-equipe {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title-equipe {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 5rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.hero-button-equipe {
+    margin-top: 2rem !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    color: #333 !important;
+    font-weight: 600 !important;
+    font-family: 'Montserrat', sans-serif !important;
+    padding: 12px 35px !important;
+    border-radius: 2px !important;
+    font-size: 0.9rem !important;
+    letter-spacing: 1px;
+    border: 1px solid white !important;
+    transition: all 0.3s ease !important;
+}
+
+.hero-button-equipe:hover {
+    background-color: #fff !important;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.main-content-equipe {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+}
+
+.section-heading-equipe {
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 1.5rem !important;
+    color: #333;
+    margin-bottom: 1rem !important;
+}
+
+.section-subheading-equipe {
+    font-family: 'Montserrat', sans-serif !important;
+    color: #666;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.experience-accordion {
+    box-shadow: none !important;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 0 !important;
+}
+
+.experience-accordion:before {
+    display: none !important;
+}
+
+.experience-accordion.Mui-expanded {
+    margin: 0 !important;
+}
+
+.accordion-summary {
+    padding: 20px 0 !important;
+}
+
+.accordion-title {
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 1.2rem !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #333;
+}
+
+.accordion-details {
+    padding: 0 0 25px 0 !important;
+    font-family: 'Montserrat', sans-serif !important;
+    color: #555;
+    line-height: 1.8;
+}
+
+/* Stylist Cards */
+.stylist-card {
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stylist-card:hover {
+    transform: translateY(-5px);
+}
+
+.stylist-card-image {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
+}
+
+.stylist-card:hover .stylist-card-image {
+    filter: grayscale(0%);
+}
+
+.stylist-card-content {
+    padding: 15px 0;
+}
+
+.stylist-card-name {
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 1.1rem !important;
+    color: #333;
+} 

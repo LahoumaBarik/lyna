@@ -1,0 +1,270 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #FDFCFA;
+  color: #2C2C2C;
+  transition: all 0.3s ease;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* NUCLEAR OPTION - MAXIMUM SPECIFICITY MATERIAL-UI INPUT FIXES */
+div.MuiOutlinedInput-root,
+div.MuiOutlinedInput-root *,
+div.MuiOutlinedInput-root::before,
+div.MuiOutlinedInput-root::after,
+.MuiTextField-root div.MuiOutlinedInput-root,
+.MuiTextField-root div.MuiOutlinedInput-root *,
+.MuiTextField-root div.MuiOutlinedInput-root::before,
+.MuiTextField-root div.MuiOutlinedInput-root::after {
+  background-color: transparent !important;
+  background-image: none !important;
+  background: transparent !important;
+}
+
+div.MuiOutlinedInput-root:hover,
+div.MuiOutlinedInput-root:hover *,
+div.MuiOutlinedInput-root:hover::before,
+div.MuiOutlinedInput-root:hover::after,
+.MuiTextField-root div.MuiOutlinedInput-root:hover,
+.MuiTextField-root div.MuiOutlinedInput-root:hover *,
+.MuiTextField-root div.MuiOutlinedInput-root:hover::before,
+.MuiTextField-root div.MuiOutlinedInput-root:hover::after {
+  background-color: transparent !important;
+  background-image: none !important;
+  background: transparent !important;
+}
+
+div.MuiOutlinedInput-root.Mui-focused,
+div.MuiOutlinedInput-root.Mui-focused *,
+div.MuiOutlinedInput-root.Mui-focused::before,
+div.MuiOutlinedInput-root.Mui-focused::after,
+.MuiTextField-root div.MuiOutlinedInput-root.Mui-focused,
+.MuiTextField-root div.MuiOutlinedInput-root.Mui-focused *,
+.MuiTextField-root div.MuiOutlinedInput-root.Mui-focused::before,
+.MuiTextField-root div.MuiOutlinedInput-root.Mui-focused::after {
+  background-color: transparent !important;
+  background-image: none !important;
+  background: transparent !important;
+}
+
+input.MuiOutlinedInput-input,
+input.MuiOutlinedInput-input:hover,
+input.MuiOutlinedInput-input:focus,
+input.MuiOutlinedInput-input:active,
+input.MuiOutlinedInput-input:focus-visible,
+.MuiTextField-root input.MuiOutlinedInput-input,
+.MuiTextField-root input.MuiOutlinedInput-input:hover,
+.MuiTextField-root input.MuiOutlinedInput-input:focus,
+.MuiTextField-root input.MuiOutlinedInput-input:active,
+.MuiTextField-root input.MuiOutlinedInput-input:focus-visible {
+  background-color: transparent !important;
+  background-image: none !important;
+  background: transparent !important;
+}
+
+/* Prevent any auto-fill background colors with maximum specificity */
+input.MuiOutlinedInput-input:-webkit-autofill,
+input.MuiOutlinedInput-input:-webkit-autofill:hover,
+input.MuiOutlinedInput-input:-webkit-autofill:focus,
+input.MuiOutlinedInput-input:-webkit-autofill:active,
+.MuiTextField-root input.MuiOutlinedInput-input:-webkit-autofill,
+.MuiTextField-root input.MuiOutlinedInput-input:-webkit-autofill:hover,
+.MuiTextField-root input.MuiOutlinedInput-input:-webkit-autofill:focus,
+.MuiTextField-root input.MuiOutlinedInput-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background: transparent !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Target any possible nested elements */
+.MuiTextField-root .MuiInputBase-root,
+.MuiTextField-root .MuiInputBase-root *,
+.MuiTextField-root .MuiInputBase-root::before,
+.MuiTextField-root .MuiInputBase-root::after {
+  background-color: transparent !important;
+  background-image: none !important;
+  background: transparent !important;
+}
+
+.MuiTextField-root .MuiInputBase-root:hover,
+.MuiTextField-root .MuiInputBase-root:hover *,
+.MuiTextField-root .MuiInputBase-root:hover::before,
+.MuiTextField-root .MuiInputBase-root:hover::after {
+  background-color: transparent !important;
+  background-image: none !important;
+  background: transparent !important;
+}
+
+.MuiTextField-root .MuiInputBase-root.Mui-focused,
+.MuiTextField-root .MuiInputBase-root.Mui-focused *,
+.MuiTextField-root .MuiInputBase-root.Mui-focused::before,
+.MuiTextField-root .MuiInputBase-root.Mui-focused::after {
+  background-color: transparent !important;
+  background-image: none !important;
+  background: transparent !important;
+}
+
+/* DISABLE GLOBAL OUTLINE FOR MATERIAL-UI INPUTS TO PREVENT DOUBLE BORDER */
+.MuiOutlinedInput-root:focus-visible,
+.MuiOutlinedInput-input:focus-visible,
+.MuiTextField-root:focus-visible,
+.MuiTextField-root *:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: none !important;
+}
+
+/* Focus indicators for keyboard navigation - EXCLUDE inputs to prevent double borders */
+*:focus-visible:not(input):not(textarea):not(.MuiOutlinedInput-root):not(.MuiOutlinedInput-input):not(.MuiTextField-root):not(.MuiInputBase-root) {
+  outline: 2px solid #D4B996 !important;
+  outline-offset: 2px !important;
+  border-radius: 4px !important;
+}
+
+/* Enhanced touch targets for mobile */
+@media (max-width: 768px) {
+  .MuiButton-root {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  .MuiIconButton-root {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  
+  .MuiTab-root {
+    min-height: 44px !important;
+  }
+
+  body {
+    font-size: 16px;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4B996;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B8A08A;
+}
+
+::selection {
+  background-color: rgba(212, 185, 150, 0.3);
+  color: inherit;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #D4B996 #f1f1f1;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.slide-in-up {
+  animation: slideInUp 0.5s ease-in-out;
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Reduced motion for users with vestibular disorders */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+} 

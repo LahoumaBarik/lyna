@@ -1,0 +1,114 @@
+.apropos-page {
+  background-color: #f8f4f0;
+  padding: 80px 0;
+  font-family: 'Montserrat', sans-serif;
+  color: #8d5c2c;
+}
+
+.apropos-container {
+  max-width: 1200px !important;
+}
+
+.section-spacing {
+  margin-bottom: 100px;
+}
+
+.text-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 700 !important;
+  color: #7f5539 !important;
+  font-size: 3rem !important;
+  margin-bottom: 24px !important;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.section-subtitle {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 600 !important;
+  color: #7f5539 !important;
+  font-size: 2.2rem !important;
+  margin-bottom: 20px !important;
+}
+
+.section-text {
+  font-size: 1.1rem !important;
+  line-height: 1.8 !important;
+  max-width: 500px;
+}
+
+.section-image {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+/* Gallery Banner */
+.gallery-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  overflow-x: auto; /* For smaller screens */
+}
+
+.gallery-image {
+  width: 18%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gallery-image:hover {
+  transform: scale(1.05) translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+/* Philosophy Section */
+.philosophy-section {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.centered-text {
+  max-width: 700px;
+}
+
+.philosophy-cta-text {
+  font-family: 'Playfair Display', serif !important;
+  color: #a67c52 !important;
+  font-weight: 600 !important;
+  font-size: 1.8rem !important;
+  margin-top: 40px !important;
+  margin-bottom: 30px !important;
+  max-width: 500px;
+}
+
+.cta-button-propos {
+  border-color: #a67c52 !important;
+  color: #a67c52 !important;
+  font-weight: 600 !important;
+  padding: 12px 30px !important;
+  border-radius: 25px !important;
+  border-width: 2px !important;
+  transition: all 0.3s ease !important;
+}
+
+.cta-button-propos:hover {
+  background-color: #a67c52 !important;
+  color: white !important;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(166, 124, 82, 0.2);
+} 

@@ -1,0 +1,105 @@
+body {
+  background: #f5eee6;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  color: #7f5539;
+  margin: 0;
+}
+
+.typeform-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(120deg, #f8e1e7 0%, #e3eafc 100%);
+}
+
+.typeform-box {
+  position: relative;
+  background: #fff8f0;
+  border-radius: 2.7rem;
+  box-shadow: 0 12px 48px rgba(176,137,104,0.18), 0 2px 8px rgba(176,137,104,0.10);
+  padding: 3.5rem 3.5rem 2.7rem 3.5rem;
+  min-width: 340px;
+  max-width: 700px;
+  width: 100%;
+  overflow: visible;
+}
+.typeform-box::before {
+  content: '';
+  position: absolute;
+  left: -40px; right: -40px; top: -40px; bottom: -40px;
+  border-radius: 3.2rem;
+  background: radial-gradient(circle, #e3caa5 0%, transparent 70%);
+  opacity: 0.13;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.typeform-title {
+  color: #a67c52;
+  font-size: 2.7rem;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  margin-bottom: 2.7rem;
+  text-align: center;
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 8px #e3caa5cc;
+}
+
+.typeform-label {
+  color: #b08968;
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.typeform-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e3caa5;
+  background: #fff8f0;
+  margin-bottom: 18px;
+  font-size: 1rem;
+  color: #7f5539;
+  outline: none;
+  transition: border 0.2s;
+}
+.typeform-input:focus {
+  border: 1.5px solid #b08968;
+}
+
+.typeform-btn {
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg, #e3caa5 0%, #b08968 100%);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.typeform-btn:hover {
+  background: linear-gradient(90deg, #b08968 0%, #e3caa5 100%);
+}
+
+.typeform-error {
+  color: #fff;
+  background: #b08968;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.typeform-link {
+  color: #b08968;
+  text-decoration: underline;
+  cursor: pointer;
+  display: block;
+  margin-top: 18px;
+  text-align: center;
+} 

@@ -1,0 +1,190 @@
+/* Accessibility CSS Styles */
+
+/* High Contrast Mode */
+.high-contrast {
+  --primary-color: #000000;
+  --secondary-color: #ffffff;
+  --text-color: #000000;
+  --background-color: #ffffff;
+  --border-color: #000000;
+  --link-color: #0000ff;
+  --visited-link-color: #800080;
+  --hover-color: #ffff00;
+  --focus-color: #ff0000;
+}
+
+.high-contrast * {
+  border-color: var(--border-color) !important;
+  background-color: var(--background-color) !important;
+  color: var(--text-color) !important;
+}
+
+.high-contrast a {
+  color: var(--link-color) !important;
+  text-decoration: underline !important;
+}
+
+.high-contrast a:visited {
+  color: var(--visited-link-color) !important;
+}
+
+.high-contrast a:hover,
+.high-contrast button:hover,
+.high-contrast *:hover {
+  background-color: var(--hover-color) !important;
+  color: var(--text-color) !important;
+}
+
+.high-contrast *:focus {
+  outline: 3px solid var(--focus-color) !important;
+  outline-offset: 2px !important;
+}
+
+/* Color Blind Mode Filters */
+.colorblind-protanopia {
+  filter: url('#protanopia-filter');
+}
+
+.colorblind-deuteranopia {
+  filter: url('#deuteranopia-filter');
+}
+
+.colorblind-tritanopia {
+  filter: url('#tritanopia-filter');
+}
+
+.colorblind-achromatopsia {
+  filter: grayscale(100%);
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Force reduced motion when the class is applied */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: var(--animation-duration, 0.01ms) !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: var(--transition-duration, 0.01ms) !important;
+  scroll-behavior: auto !important;
+}
+
+/* Focus indicators */
+.focus-visible:focus,
+.focus-visible:focus-visible {
+  outline: 2px solid #005fcc;
+  outline-offset: 2px;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip to main content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 9999;
+  border-radius: 4px;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* High contrast buttons */
+.high-contrast .MuiButton-root {
+  border: 2px solid var(--border-color) !important;
+  background-color: var(--background-color) !important;
+  color: var(--text-color) !important;
+}
+
+.high-contrast .MuiButton-contained {
+  background-color: var(--text-color) !important;
+  color: var(--background-color) !important;
+}
+
+/* High contrast form elements */
+.high-contrast .MuiTextField-root input,
+.high-contrast .MuiTextField-root textarea,
+.high-contrast .MuiSelect-select {
+  background-color: var(--background-color) !important;
+  color: var(--text-color) !important;
+  border: 2px solid var(--border-color) !important;
+}
+
+/* High contrast cards */
+.high-contrast .MuiCard-root {
+  border: 2px solid var(--border-color) !important;
+  background-color: var(--background-color) !important;
+}
+
+/* Font size adjustments */
+html {
+  font-size: 16px; /* Default */
+}
+
+html[data-font-size="small"] {
+  font-size: 14px;
+}
+
+html[data-font-size="large"] {
+  font-size: 18px;
+}
+
+html[data-font-size="xlarge"] {
+  font-size: 20px;
+}
+
+/* Color blind filters - SVG definitions would be added to HTML */
+svg.colorblind-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* Ensure all interactive elements are keyboard accessible */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus,
+a:focus {
+  outline: 2px solid #005fcc;
+  outline-offset: 2px;
+}
+
+/* Improved touch targets for mobile */
+@media (max-width: 768px) {
+  button,
+  input,
+  select,
+  textarea,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+} 
