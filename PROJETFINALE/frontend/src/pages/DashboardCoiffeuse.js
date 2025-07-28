@@ -52,8 +52,8 @@ import {
   LocationOn
 } from '@mui/icons-material';
 import WeeklyCalendar from '../components/WeeklyCalendar';
-
-const API_URL = 'http://localhost:5000/api';
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 function DashboardCoiffeuse() {
   const { user } = useAuth();
@@ -112,15 +112,15 @@ function DashboardCoiffeuse() {
     try {
       setAppointmentsLoading(true);
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${API_URL}/reservations`, {
+      const response = await axios.get(`${API_BASE_URL}/reservations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Failed to fetch appointments');
       }
       
-      const data = await response.json();
+      const data = response.data;
       // Handle both array response (no pagination) and object response (with pagination)
       const reservations = Array.isArray(data) ? data : (data.reservations || []);
       setAppointments(reservations);
@@ -135,12 +135,12 @@ function DashboardCoiffeuse() {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${API_URL}/analytics/stylist-stats`, {
+      const response = await axios.get(`${API_BASE_URL}/analytics/stylist-stats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         setStats(data);
       }
     } catch (error) {
@@ -153,30 +153,28 @@ function DashboardCoiffeuse() {
     try {
       setLoading(true);
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${API_URL}/users/me`, {
-        method: 'PUT',
+      const response = await axios.put(`${API_BASE_URL}/users/me`, {
+        firstName: profileForm.firstName,
+        lastName: profileForm.lastName,
+        phone: profileForm.phone,
+        stylistInfo: {
+          description: profileForm.description,
+          specializations: profileForm.specializations,
+          experience: profileForm.experience
+        }
+      }, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          firstName: profileForm.firstName,
-          lastName: profileForm.lastName,
-          phone: profileForm.phone,
-          stylistInfo: {
-            description: profileForm.description,
-            specializations: profileForm.specializations,
-            experience: profileForm.experience
-          }
-        })
+        }
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (response.status !== 200) {
+        const errorData = response.data;
         throw new Error(errorData.message || 'Failed to update profile');
       }
       
-      const result = await response.json();
+      const result = response.data;
       setSuccess('Profil mis à jour avec succès');
       setProfileDialogOpen(false);
       

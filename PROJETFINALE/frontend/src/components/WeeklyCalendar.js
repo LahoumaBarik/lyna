@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Paper, Typography, Grid, Button, IconButton, Chip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem, Alert, CircularProgress, Tooltip, Divider, Card, CardContent
+  Box,
+  Typography,
+  Grid,
+  Paper,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+  CircularProgress,
+  Chip,
+  IconButton,
+  Tooltip
 } from '@mui/material';
-import {
-  Schedule, Add, Edit, Delete, CheckCircle, Cancel, AccessTime, Event, Today, ArrowBack, ArrowForward, MoreVert
-} from '@mui/icons-material';
-
-const API_URL = 'http://localhost:5000/api';
+import { Add, Delete, Edit, Schedule } from '@mui/icons-material';
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 const DAYS_OF_WEEK = [
   { key: 'monday', label: 'Lundi', short: 'Lun' },
@@ -91,18 +107,18 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
     
     try {
       const targetUser = selectedStylist || user;
-      const response = await fetch(`${API_URL}/disponibilites/my-schedule`, {
+      const response = await axios.get(`${API_BASE_URL}/disponibilites/my-schedule`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         }
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Failed to fetch availabilities');
       }
 
-      const availabilities = await response.json();
+      const availabilities = response.data;
       
       // Extract the disponibilites array from the response
       const disponibilitesArray = availabilities.disponibilites || availabilities;
@@ -150,15 +166,14 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
     }
 
     try {
-      const response = await fetch(`${API_URL}/disponibilites/my-schedule/${availabilityId}`, {
-        method: 'DELETE',
+      const response = await axios.delete(`${API_BASE_URL}/disponibilites/my-schedule/${availabilityId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         }
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Failed to delete availability');
       }
 
@@ -177,21 +192,22 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
 
     try {
       const url = editMode 
-        ? `${API_URL}/disponibilites/my-schedule/${selectedSlot._id}`
-        : `${API_URL}/disponibilites/my-schedule`;
+        ? `${API_BASE_URL}/disponibilites/my-schedule/${selectedSlot._id}`
+        : `${API_BASE_URL}/disponibilites/my-schedule`;
       
       const method = editMode ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await axios({
         method,
+        url,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        data: formData
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Failed to save availability');
       }
 

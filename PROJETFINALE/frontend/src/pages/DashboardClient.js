@@ -37,9 +37,8 @@ import {
   Save,
   Work
 } from '@mui/icons-material';
-import axios from 'axios'; // Added axios import
-
-const API_URL = 'http://localhost:5000/api';
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 function DashboardClient() {
   const { user } = useAuth();
@@ -168,56 +167,37 @@ function DashboardClient() {
   };
 
   const handleSaveModification = async () => {
+    if (!modifyingReservation) return;
+    
     try {
-      if (!newDate || !newTime) {
-        setError('Veuillez remplir tous les champs');
-        return;
-      }
-
+      setLoading(true);
       const token = localStorage.getItem('accessToken');
       
-      console.log('🔍 Frontend time debugging:');
-      console.log('newTime value:', newTime);
-      console.log('newTime type:', typeof newTime);
-      console.log('newDate value:', newDate);
-      
-      const requestBody = {
+      const updateData = {
         date: newDate,
-        startTime: newTime
+        startTime: newTime,
+        services: modificationForm.services || modifyingReservation.services
       };
-      
-      console.log('📤 Sending modification request:', requestBody);
 
-      const res = await fetch(`http://localhost:5000/api/reservations/${modifyingReservation._id}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
+      const response = await axios.patch(`${API_BASE_URL}/reservations/${modifyingReservation._id}`, updateData, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      const data = await res.json();
-      console.log('📥 API Response:', data);
-
-      if (res.ok) {
-        console.log('Modification successful, refreshing data...'); // Debug log
+      if (response.status === 200) {
         setSuccess('Réservation modifiée avec succès !');
         setModifyDialogOpen(false);
         setModifyingReservation(null);
+        setModificationForm({});
         setNewDate('');
         setNewTime('');
         
-        // Refresh reservations list immediately
-        await fetchReservations();
-        console.log('Data refresh completed after modification'); // Debug log
-      } else {
-        console.error('Modification error:', data);
-        throw new Error(data.error || data.message || 'Erreur lors de la modification');
+        // Refresh the page to show updated data
+        window.location.reload();
       }
-    } catch (err) {
-      console.error('Save modification error:', err);
-      setError(err.message || 'Erreur lors de la modification');
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erreur lors de la modification');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -229,24 +209,22 @@ function DashboardClient() {
   const handleMarkCompleted = async (reservationId) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`http://localhost:5000/api/reservations/${reservationId}`, {
-        method: 'PATCH',
+      const response = await axios.patch(`${API_BASE_URL}/reservations/${reservationId}`, { status: 'completed' }, {
         headers: {
-          'Authorization': 'Bearer ' + token,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: 'completed' })
+        }
       });
       
-      if (res.ok) {
+      if (response.status === 200) {
         setSuccess('Rendez-vous marqué comme terminé !');
         setTimeout(() => setSuccess(''), 3000);
         
-        // Refresh reservations list immediately
-        await fetchReservations();
+        // Refresh reservations list
+        window.location.reload();
       }
-    } catch (err) {
-      setError('Erreur lors de la mise à jour');
+    } catch (error) {
+      setError('Erreur lors du marquage comme terminé');
     }
   };
 

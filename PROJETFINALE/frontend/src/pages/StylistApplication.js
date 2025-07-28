@@ -36,8 +36,7 @@ import {
   ArrowBack
 } from '@mui/icons-material';
 import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api';
+import { API_BASE_URL } from '../config/api';
 
 const steps = [
   'Personal Information',
@@ -126,7 +125,7 @@ function StylistApplication() {
     const checkExistingApplication = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await axios.get(`${API_URL}/stylist-applications/my-application`, {
+        const response = await axios.get(`${API_BASE_URL}/stylist-applications/my-application`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setExistingApplication(response.data.application);
@@ -215,7 +214,7 @@ function StylistApplication() {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.post(`${API_URL}/stylist-applications`, submissionData, {
+      const response = await axios.post(`${API_BASE_URL}/stylist-applications`, submissionData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

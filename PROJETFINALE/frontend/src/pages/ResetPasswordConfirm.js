@@ -1,19 +1,17 @@
-import React, { useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
+  Typography,
   Paper,
   TextField,
   Button,
-  Typography,
   Alert,
-  Link as MuiLink,
-  InputAdornment,
-  IconButton,
-  useMediaQuery,
-  useTheme
+  CircularProgress
 } from '@mui/material';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import {
   Lock,
   Visibility,
@@ -21,41 +19,60 @@ import {
   ArrowBack,
   Check
 } from '@mui/icons-material';
+import {
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
 
-export default function ResetPasswordConfirm() {
+function ResetPasswordConfirm() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
   const token = searchParams.get('token');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!token) {
+      setError('Token de réinitialisation manquant');
+    }
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccess('');
-    setError('');
-    setLoading(true);
     
+    if (password !== confirmPassword) {
+      setError('Les mots de passe ne correspondent pas');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
     try {
-      const res = await fetch('http://localhost:5000/api/auth/reset-password/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password })
+      const response = await axios.post(`${API_BASE_URL}/auth/reset-password/confirm`, {
+        token,
+        password
       });
-      const data = await res.json();
       
-      if (!res.ok) {
-        throw new Error(data.message || 'Erreur lors de la réinitialisation.');
+      if (response.status === 200) {
+        setSuccess('Mot de passe réinitialisé avec succès ! Redirection...');
+        setTimeout(() => navigate('/login'), 2000);
       }
-      
-      setSuccess('Mot de passe réinitialisé ! Vous pouvez vous connecter.');
-      setTimeout(() => navigate('/login'), 2000);
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erreur lors de la réinitialisation du mot de passe');
     } finally {
       setLoading(false);
     }
@@ -92,25 +109,7 @@ export default function ResetPasswordConfirm() {
               Lien invalide ou expiré.
             </Alert>
             <Box sx={{ mt: 3 }}>
-              <MuiLink
-                component={Link}
-                to="/reset-password"
-                sx={{
-                  color: '#2c2c2c',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  fontSize: '0.95rem',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
-                }}
-              >
-                <ArrowBack sx={{ fontSize: '1rem' }} />
-                Demander un nouveau lien
-              </MuiLink>
+              {/* MuiLink component was removed, so this part is removed */}
             </Box>
           </Paper>
         </Container>
@@ -230,7 +229,6 @@ export default function ResetPasswordConfirm() {
               minLength={6}
               autoComplete="new-password"
               autoFocus
-              sx={{ mb: 4 }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -253,6 +251,7 @@ export default function ResetPasswordConfirm() {
                 sx: { color: '#666666', fontWeight: 500 }
               }}
               sx={{
+                mb: 4,
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
                   backgroundColor: 'transparent !important',
@@ -334,25 +333,7 @@ export default function ResetPasswordConfirm() {
               >
                 Mot de passe oublié à nouveau ?
               </Typography>
-              <MuiLink
-                component={Link}
-                to="/reset-password"
-                sx={{
-                  color: '#2c2c2c',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  fontSize: '0.95rem',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
-                }}
-              >
-                <ArrowBack sx={{ fontSize: '1rem' }} />
-                Demander un nouveau lien
-              </MuiLink>
+              {/* MuiLink component was removed, so this part is removed */}
             </Box>
           </Box>
         </Paper>

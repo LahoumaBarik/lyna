@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -11,13 +11,16 @@ import {
   Link as MuiLink,
   InputAdornment,
   useMediaQuery,
-  useTheme
+  useTheme,
+  CircularProgress
 } from '@mui/material';
 import {
   Email,
   ArrowBack,
   Send
 } from '@mui/icons-material';
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 export default function ResetPassword() {
   const theme = useTheme();
@@ -26,6 +29,7 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,21 +38,13 @@ export default function ResetPassword() {
     setLoading(true);
     
     try {
-      const res = await fetch('http://localhost:5000/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
+      const response = await axios.post(`${API_BASE_URL}/auth/reset-password`, { email });
       
-      if (!res.ok) {
-        throw new Error(data.message || 'Erreur lors de la demande.');
+      if (response.status === 200) {
+        setSuccess('Un email de réinitialisation a été envoyé à votre adresse email.');
       }
-      
-      setSuccess('Un email a été envoyé si ce compte existe.');
-      setEmail(''); // Clear the form on success
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erreur lors de l\'envoi de l\'email de réinitialisation');
     } finally {
       setLoading(false);
     }
@@ -238,7 +234,7 @@ export default function ResetPassword() {
                 transition: 'all 0.2s ease-in-out'
               }}
             >
-              {loading ? 'Envoi en cours...' : 'Envoyer le lien'}
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Envoyer le lien'}
             </Button>
 
             <Box 

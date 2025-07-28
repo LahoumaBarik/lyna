@@ -54,6 +54,7 @@ import {
   Visibility
 } from '@mui/icons-material';
 import WeeklyCalendar from '../components/WeeklyCalendar';
+import { API_BASE_URL } from '../config/api';
 
 // Valid service categories
 const CATEGORIES = [
@@ -68,7 +69,7 @@ const CATEGORIES = [
   { value: 'package', label: 'Package' }
 ];
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = API_BASE_URL;
 
 // Extracted TabPanel to top-level
 function TabPanel({ children, value, index }) {

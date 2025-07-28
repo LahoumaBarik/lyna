@@ -47,8 +47,7 @@ import {
   Description
 } from '@mui/icons-material';
 import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api';
+import { API_BASE_URL } from '../config/api';
 
 const statusColors = {
   pending: 'warning',
@@ -101,7 +100,7 @@ function StylistApplicationAdmin() {
       const token = localStorage.getItem('accessToken');
       console.log('Token:', token ? 'Present' : 'Missing');
       
-      const response = await axios.get(`${API_URL}/stylist-applications?status=${statusFilter}&page=${page}`, {
+      const response = await axios.get(`${API_BASE_URL}/stylist-applications?status=${statusFilter}&page=${page}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -119,7 +118,7 @@ function StylistApplicationAdmin() {
   const handleViewApplication = async (applicationId) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get(`${API_URL}/stylist-applications/${applicationId}`, {
+      const response = await axios.get(`${API_BASE_URL}/stylist-applications/${applicationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSelectedApplication(response.data.application);
@@ -146,7 +145,7 @@ function StylistApplicationAdmin() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const url = `${API_URL}/stylist-applications/${selectedApplication._id}`;
+      const url = `${API_BASE_URL}/stylist-applications/${selectedApplication._id}`;
       let data = {};
 
       switch (actionType) {
