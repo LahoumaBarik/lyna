@@ -192,7 +192,7 @@ export const AuthProvider = ({ children }) => {
           const refreshToken = localStorage.getItem('refreshToken');
           if (refreshToken) {
             try {
-              const response = await axios.post('/api/auth/refresh-token', {
+              const response = await axios.post('/auth/refresh-token', {
                 refreshToken
               });
               
@@ -300,7 +300,7 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
       
-      const response = await axios.post('/api/auth/login', credentials);
+      const response = await axios.post('/auth/login', credentials);
       
       if (response.data.code === 'LOGIN_SUCCESS' && response.data.data) {
         const { accessToken, refreshToken, user } = response.data.data;
@@ -344,14 +344,14 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
       
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await axios.post('/auth/register', userData);
       
       if (response.data.code === 'REGISTRATION_SUCCESS') {
         toast.success(response.data.data.message);
         
         // Automatically log in the user after successful registration
         try {
-          const loginResponse = await axios.post('/api/auth/login', {
+          const loginResponse = await axios.post('/auth/login', {
             email: userData.email,
             password: userData.password
           });
@@ -415,7 +415,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Call logout endpoint if token exists
       if (state.token) {
-        await axios.post('/api/auth/logout');
+        await axios.post('/auth/logout');
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -442,7 +442,7 @@ export const AuthProvider = ({ children }) => {
   // Update profile function
   const updateProfile = async (userData) => {
     try {
-      const response = await axios.put('/api/auth/profile', userData);
+      const response = await axios.put('/auth/profile', userData);
       
       if (response.data.code === 'PROFILE_UPDATE_SUCCESS') {
         dispatch({
@@ -465,7 +465,7 @@ export const AuthProvider = ({ children }) => {
   // Fetch notifications
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('/api/notifications');
+      const response = await axios.get('/notifications');
       if (response.data.success) {
         dispatch({
           type: AUTH_ACTIONS.SET_NOTIFICATIONS,
@@ -484,7 +484,7 @@ export const AuthProvider = ({ children }) => {
   // Mark notification as read
   const markNotificationAsRead = async (notificationId) => {
     try {
-      await axios.patch(`/api/notifications/${notificationId}/read`);
+      await axios.patch(`/notifications/${notificationId}/read`);
       dispatch({
         type: AUTH_ACTIONS.UPDATE_NOTIFICATION,
         payload: { id: notificationId, updates: { read: true } }
@@ -497,7 +497,7 @@ export const AuthProvider = ({ children }) => {
   // Mark all notifications as read
   const markAllNotificationsAsRead = async () => {
     try {
-      await axios.patch('/api/notifications/mark-all-read');
+      await axios.patch('/notifications/mark-all-read');
       
       const updatedNotifications = state.notifications.map(notif => ({
         ...notif,
@@ -528,7 +528,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const response = await axios.get('/api/auth/me');
+        const response = await axios.get('/auth/me');
         
         if (response.data.code === 'USER_DATA_SUCCESS' && response.data.data) {
           dispatch({
