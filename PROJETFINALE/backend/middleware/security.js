@@ -143,7 +143,10 @@ const validateApiKey = (req, res, next) => {
     return next();
   }
   
-  if (!apiKey && process.env.NODE_ENV === 'production') {
+  // Check if API key is required based on environment variable
+  const apiKeyRequired = process.env.API_KEY_REQUIRED === 'true';
+  
+  if (!apiKey && process.env.NODE_ENV === 'production' && apiKeyRequired) {
     return res.status(401).json({ error: 'API key required' });
   }
   
