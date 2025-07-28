@@ -241,14 +241,10 @@ function DashboardAdmin() {
     try {
       setLoading(true);
       const token = localStorage.getItem('accessToken');
-      console.log('Fetching disponibilités...');
-      console.log('Token present:', !!token);
       
       const res = await fetch(`${API_URL}/disponibilites`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
-      console.log('Disponibilités fetch response:', res.status, res.statusText);
       
       if (res.status === 401) {
         setDispoError('Session expirée. Veuillez vous reconnecter.');
@@ -257,13 +253,8 @@ function DashboardAdmin() {
       }
       
       const data = await res.json();
-      console.log('Disponibilités data received:', data);
-      console.log('Data is array:', Array.isArray(data));
-      console.log('Data length:', data?.length);
-      
       setDispos(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Error fetching disponibilités:', err);
       setDispoError('Erreur lors du chargement des disponibilités');
       setDispos([]);
     } finally {
@@ -504,10 +495,6 @@ function DashboardAdmin() {
         category: category.trim()
       };
 
-      console.log('Service creation payload:', payload);
-      console.log('API URL:', url);
-      console.log('Token present:', !!token);
-
       const res = await fetch(url, {
         method,
         headers: {
@@ -516,8 +503,6 @@ function DashboardAdmin() {
         },
         body: JSON.stringify(payload)
       });
-
-      console.log('Response received:', res.status, res.statusText);
 
       if (res.status === 403) {
         setServiceError('Accès refusé : admin uniquement.');
@@ -534,9 +519,6 @@ function DashboardAdmin() {
       let data;
       try {
         const responseText = await res.text();
-        console.log('Raw response:', responseText);
-        console.log('Response status:', res.status);
-        console.log('Response headers:', [...res.headers.entries()]);
         
         if (responseText.trim()) {
           data = JSON.parse(responseText);
@@ -879,10 +861,6 @@ function DashboardAdmin() {
         heureFin
       };
 
-      console.log('Disponibilité creation payload:', payload);
-      console.log('API URL:', url);
-      console.log('Token present:', !!token);
-
       const res = await fetch(url, {
         method,
         headers: {
@@ -891,8 +869,6 @@ function DashboardAdmin() {
         },
         body: JSON.stringify(payload)
       });
-
-      console.log('Disponibilité response received:', res.status, res.statusText);
 
       if (res.status === 401) {
         setDispoError('Session expirée. Veuillez vous reconnecter.');
@@ -903,7 +879,6 @@ function DashboardAdmin() {
       let data;
       try {
         const responseText = await res.text();
-        console.log('Disponibilité raw response:', responseText);
         
         if (responseText.trim()) {
           data = JSON.parse(responseText);
@@ -932,8 +907,6 @@ function DashboardAdmin() {
         }
         return;
       }
-
-      console.log('Disponibilité created successfully:', data);
 
       setDispoForm({ stylist: '', jour: '', heureDebut: '', heureFin: '' });
       setEditDispoId(null);

@@ -37,6 +37,7 @@ import {
   Save,
   Work
 } from '@mui/icons-material';
+import axios from 'axios'; // Added axios import
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -90,8 +91,27 @@ function DashboardClient() {
 
   // Fetch reservations on component mount
   useEffect(() => {
-    fetchReservations();
-  }, [fetchReservations]);
+    const fetchReservations = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) return;
+
+        const response = await axios.get('/reservations/client', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.data.success) {
+          setReservations(response.data.data);
+        }
+      } catch (e) {
+        setError('Erreur lors du chargement des réservations');
+      }
+    };
+
+    if (user) {
+      fetchReservations();
+    }
+  }, [user]);
 
   // Separate upcoming and past reservations
   const now = new Date();

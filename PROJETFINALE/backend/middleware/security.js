@@ -44,21 +44,15 @@ const paymentLimiter = createRateLimiter(
 );
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://she-tgbi.onrender.com',
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL
+].filter(Boolean);
+
 const corsOptions = {
   origin: function (origin, callback) {
-    // In development, allow all origins for easier testing
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      process.env.CLIENT_URL,
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://yourdomain.com'
-    ];
-    
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
