@@ -49,45 +49,13 @@ function DashboardClient() {
   const [success, setSuccess] = useState('');
   const [modifyDialogOpen, setModifyDialogOpen] = useState(false);
   const [modifyingReservation, setModifyingReservation] = useState(null);
+  const [modificationForm, setModificationForm] = useState({});
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [selectedReservationForReview, setSelectedReservationForReview] = useState(null);
+  const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
   const navigate = useNavigate();
-
-  // Extract fetchReservations as a top-level useCallback with cache-busting
-  const fetchReservations = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const token = localStorage.getItem('accessToken');
-      
-      // More aggressive cache-busting
-      const timestamp = Date.now();
-      const randomParam = Math.random().toString(36).substring(2);
-      const url = `http://localhost:5000/api/reservations?_t=${timestamp}&_r=${randomParam}`;
-      
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: { 
-          'Authorization': 'Bearer ' + token,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-          'If-Modified-Since': 'Thu, 01 Jan 1970 00:00:00 GMT'
-        },
-        cache: 'no-store'
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Erreur chargement réservations');
-      
-      console.log('Fetched reservations:', data); // Debug log
-      setReservations(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error('Fetch error:', e); // Debug log
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   // Fetch reservations on component mount
   useEffect(() => {
@@ -96,12 +64,14 @@ function DashboardClient() {
         const token = localStorage.getItem('accessToken');
         if (!token) return;
 
-        const response = await axios.get('/reservations/client', {
+        const response = await axios.get('/reservations', {
           headers: { Authorization: `Bearer ${token}` }
         });
         
         if (response.data.success) {
           setReservations(response.data.data);
+        } else {
+          setReservations(Array.isArray(response.data) ? response.data : []);
         }
       } catch (e) {
         setError('Erreur lors du chargement des réservations');
@@ -124,24 +94,18 @@ function DashboardClient() {
     if (!window.confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) return;
     
     try {
-      console.log('Starting cancellation for reservation:', id); // Debug log
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`http://localhost:5000/api/reservations/${id}/cancel`, {
-        method: 'PUT',
-        headers: { Authorization: 'Bearer ' + token }
+      const response = await axios.put(`/reservations/${id}/cancel`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error('Erreur annulation');
       
-      console.log('Cancellation successful, refreshing data...'); // Debug log
       setSuccess('Rendez-vous annulé avec succès !');
       setTimeout(() => setSuccess(''), 3000);
       
       // Refresh reservations list immediately
-      await fetchReservations();
-      console.log('Data refresh completed after cancellation'); // Debug log
+      window.location.reload();
     } catch (err) {
-      console.error('Cancellation error:', err); // Debug log
-      setError(err.message);
+      setError('Erreur lors de l\'annulation du rendez-vous');
     }
   };
 
@@ -151,22 +115,17 @@ function DashboardClient() {
     
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`http://localhost:5000/api/reservations/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: 'Bearer ' + token }
+      const response = await axios.delete(`/reservations/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Erreur suppression');
-      }
       
       setSuccess('Rendez-vous supprimé avec succès !');
       setTimeout(() => setSuccess(''), 3000);
       
       // Refresh reservations list immediately
-      await fetchReservations();
+      window.location.reload();
     } catch (err) {
-      setError(err.message);
+      setError('Erreur lors de la suppression du rendez-vous');
     }
   };
 
