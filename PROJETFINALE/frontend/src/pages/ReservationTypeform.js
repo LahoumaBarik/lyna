@@ -103,7 +103,7 @@ function ReservationTypeform() {
 
   // Configuration PayPal
   const paypalOptions = {
-    'client-id': 'test',
+    'client-id': process.env.REACT_APP_PAYPAL_CLIENT_ID || 'AVzf5mJ1Mdzu4wfVyayl7o_dgmAnNMQS13amiHMXBO0gEhaKhdoWME_KDBKc7L2HLL44GMG8mZF7HOYR',
     currency: 'USD',
     intent: 'capture'
   };
@@ -262,7 +262,10 @@ function ReservationTypeform() {
           date: selectedDate,
           startTime: selectedSlot,
           serviceIds: selectedServices.map(s => s._id),
-          stylistId: selectedCoiffeuse._id
+          stylistId: selectedCoiffeuse._id,
+          paymentMethod: details.paymentMethod || 'paypal',
+          paypalOrderId: details.paypalOrderId,
+          paypalPaymentId: details.paypalPaymentId
         }, {
           headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
@@ -284,7 +287,9 @@ function ReservationTypeform() {
           coiffeuseId: selectedCoiffeuse._id,
           date: selectedDate,
           startTime: selectedSlot,
-          paymentDetails: details,
+          paymentMethod: details.paymentMethod || 'paypal',
+          paypalOrderId: details.paypalOrderId,
+          paypalPaymentId: details.paypalPaymentId,
           totalAmount: selectedServices.reduce((total, s) => total + s.price, 0)
         }, {
           headers: {
@@ -679,7 +684,7 @@ function ReservationTypeform() {
                         '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
                         border: '2px solid #D4B996'
                       }}
-                      onClick={() => handlePaymentSuccess({ method: 'cash', amount: selectedServices.reduce((total, s) => total + s.price, 0) })}
+                      onClick={() => handlePaymentSuccess({ paymentMethod: 'cash' })}
                     >
                       <Box sx={{ mb: 2 }}>
                         <Store sx={{ fontSize: 48, color: '#D4B996' }} />
@@ -705,38 +710,63 @@ function ReservationTypeform() {
                     </Card>
                   </Grid>
 
-                  {/* PayPal Option - Disabled */}
+                  {/* PayPal Option - Re-enabled */}
                   <Grid item xs={12} md={6}>
                     <Card 
                       elevation={1} 
                       sx={{ 
                         p: 3, 
                         textAlign: 'center',
-                        opacity: 0.6
+                        border: '2px solid #0070ba',
+                        '&:hover': {
+                          borderColor: '#005ea6',
+                          boxShadow: 2
+                        }
                       }}
                     >
                       <Box sx={{ mb: 2 }}>
-                        <CreditCard sx={{ fontSize: 48, color: '#ccc' }} />
+                        <CreditCard sx={{ fontSize: 48, color: '#0070ba' }} />
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#ccc' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#2c2c2c' }}>
                         Paiement en ligne
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#999', mb: 2 }}>
+                      <Typography variant="body2" sx={{ color: '#666666', mb: 2 }}>
                         PayPal / Carte bancaire
                       </Typography>
-                      <Button
-                        variant="outlined"
-                        disabled
-                        sx={{
-                          color: '#ccc',
-                          borderColor: '#ccc',
-                          width: '100%'
-                        }}
-                      >
-                        Temporairement indisponible
-                      </Button>
-                      <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#999' }}>
-                        Mode maintenance
+                      
+                      <PayPalScriptProvider options={paypalOptions}>
+                        <PayPalButtons
+                          style={{ layout: "vertical" }}
+                          createOrder={(data, actions) => {
+                            return actions.order.create({
+                              purchase_units: [
+                                {
+                                  amount: {
+                                    value: selectedServices.reduce((total, s) => total + s.price, 0).toFixed(2),
+                                    currency_code: "USD"
+                                  },
+                                  description: `Réservation salon - ${selectedServices.map(s => s.name).join(', ')}`
+                                }
+                              ]
+                            });
+                          }}
+                          onApprove={async (data, actions) => {
+                            const order = await actions.order.capture();
+                            await handlePaymentSuccess({
+                              paypalOrderId: order.id,
+                              paypalPaymentId: order.purchase_units[0].payments.captures[0].id,
+                              paymentMethod: 'paypal'
+                            });
+                          }}
+                          onError={(err) => {
+                            console.error('PayPal Error:', err);
+                            setPaymentError('Erreur lors du paiement PayPal');
+                          }}
+                        />
+                      </PayPalScriptProvider>
+                      
+                      <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#666666' }}>
+                        Paiement sécurisé par PayPal
                       </Typography>
                     </Card>
                   </Grid>
