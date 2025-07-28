@@ -34,7 +34,8 @@ import {
   Delete,
   Cancel,
   Close,
-  Save
+  Save,
+  Work
 } from '@mui/icons-material';
 
 const API_URL = 'http://localhost:5000/api';
@@ -196,11 +197,17 @@ function DashboardClient() {
 
       const token = localStorage.getItem('accessToken');
       
-      console.log('Sending modification request:', {
+      console.log('🔍 Frontend time debugging:');
+      console.log('newTime value:', newTime);
+      console.log('newTime type:', typeof newTime);
+      console.log('newDate value:', newDate);
+      
+      const requestBody = {
         date: newDate,
-        startTime: newTime,
-        reservationId: modifyingReservation._id
-      });
+        startTime: newTime
+      };
+      
+      console.log('📤 Sending modification request:', requestBody);
 
       const res = await fetch(`http://localhost:5000/api/reservations/${modifyingReservation._id}`, {
         method: 'PATCH',
@@ -208,14 +215,11 @@ function DashboardClient() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          date: newDate,
-          startTime: newTime
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await res.json();
-      console.log('API Response:', data);
+      console.log('📥 API Response:', data);
 
       if (res.ok) {
         console.log('Modification successful, refreshing data...'); // Debug log
@@ -453,6 +457,46 @@ function DashboardClient() {
               </Typography>
             </Box>
           </Box>
+        </Paper>
+
+        {/* Become a Hairstylist Section */}
+        <Paper
+          elevation={3}
+          sx={{
+            p: 3,
+            mb: 4,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #D4B996 0%, #c4a985 100%)',
+            textAlign: 'center'
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c', mb: 2 }}>
+            <Work sx={{ mr: 1, verticalAlign: 'middle' }} />
+            Intéressé par une carrière de coiffeur ?
+          </Typography>
+          <Typography variant="body1" sx={{ color: '#2c2c2c', mb: 3 }}>
+            Rejoignez notre équipe de professionnels et développez votre carrière avec nous
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<Work />}
+            onClick={() => navigate('/stylist-application')}
+            sx={{
+              bgcolor: '#2c2c2c',
+              color: '#ffffff',
+              py: 1.5,
+              px: 4,
+              borderRadius: 2,
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              '&:hover': {
+                bgcolor: '#1a1a1a'
+              }
+            }}
+          >
+            Devenir Coiffeur
+          </Button>
         </Paper>
 
         {/* Quick Actions */}

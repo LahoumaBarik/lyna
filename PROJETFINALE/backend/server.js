@@ -26,6 +26,7 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const waitlistRoutes = require('./routes/waitlistRoutes');
+const stylistApplicationRoutes = require('./routes/stylistApplicationRoutes');
 
 // Import utilities
 require('./utils/cron');
@@ -131,9 +132,28 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/waitlist', waitlistRoutes);
+app.use('/api/stylist-applications', stylistApplicationRoutes);
 
 // File upload setup
 setupFileUpload(app);
+
+// Serve static files from React build in production
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  
+  // Serve static files from the React build
+  app.use(express.static(path.join(__dirname, '../frontend/build')));
+  
+  // Handle React routing, return all requests to React app
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
+    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+  });
+}
 
 // Catch-all route for API documentation
 app.get('/api', (req, res) => {

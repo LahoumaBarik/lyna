@@ -6,6 +6,7 @@ const Analytics = require('./Analytics');
 const WaitList = require('./WaitList');
 const Review = require('./Review');
 const Notification = require('./Notification');
+const StylistApplication = require('./StylistApplication');
 
 module.exports = {
   User,
@@ -15,5 +16,6 @@ module.exports = {
   Analytics,
   WaitList,
   Review,
-  Notification
+  Notification,
+  StylistApplication
 }; 

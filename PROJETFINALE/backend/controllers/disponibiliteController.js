@@ -103,20 +103,25 @@ exports.ajouterDisponibilite = async (req, res) => {
       });
     }
 
+    // Convertir la date en UTC pour éviter les problèmes de fuseau horaire
+    // Parse the date in local timezone to avoid timezone issues
+    const [year, month, day] = jour.split('-').map(Number);
+    const utcDate = new Date(year, month - 1, day, 0, 0, 0, 0); // Local time, not UTC
+    
+    console.log('📅 Creating availability:');
+    console.log('Input date:', jour);
+    console.log('Parsed date (local):', utcDate);
+    
     // Validate that the date is not in the past
-    const selectedDate = new Date(jour + 'T00:00:00.000Z');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    if (selectedDate < today) {
+    if (utcDate < today) {
       return res.status(400).json({ 
         message: 'Impossible de créer une disponibilité dans le passé'
       });
     }
-    
-    // On convertit la date en UTC pour éviter les décalages
-    const utcDate = new Date(jour + 'T00:00:00.000Z');
-    
+
     // Check for overlapping time slots for the same stylist on the same day
     const existingDisponibilites = await Disponibilite.find({
       stylist,
@@ -193,24 +198,29 @@ exports.listerDisponibilites = async (req, res) => {
         return res.status(400).json({ message: "La date est requise pour voir les disponibilités." });
       }
       
-      // On force l'interprétation de la date en UTC pour éviter les décalages de fuseau horaire.
-      // On cherche les disponibilités pour le jour sélectionné (de 00:00 UTC à 23:59 UTC).
-      const startOfDay = new Date(date + 'T00:00:00.000Z');
-      const endOfDay = new Date(date + 'T23:59:59.999Z');
+      // Fix timezone issue: Parse the date in local timezone, not UTC
+      const [year, month, day] = date.split('-').map(Number);
+      const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0); // Local time
+      const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999); // Local time
+
+      console.log('🔍 Client availability request:');
+      console.log('Requested date:', date);
+      console.log('Start of day (local):', startOfDay);
+      console.log('End of day (local):', endOfDay);
 
       filter = { 
         stylist: coiffeuseId, 
         isActive: true,
         jour: {
           $gte: startOfDay,
-          $lte: endOfDay // Utiliser $lte pour inclure toute la journée
+          $lte: endOfDay
         }
       };
     }
 
     const disponibilites = await Disponibilite.find(filter).populate('stylist', 'firstName lastName');
-    console.log('Disponibilités found:', disponibilites.length);
-    console.log('Filter used:', filter);
+    console.log('📋 Disponibilités found:', disponibilites.length);
+    console.log('🔍 Filter used:', JSON.stringify(filter, null, 2));
     disponibilites.forEach(d => console.log('- ', d.jour, d.heureDebut, d.heureFin, 'Stylist:', d.stylist));
     
     res.json(disponibilites);
@@ -245,6 +255,218 @@ exports.supprimerDisponibilite = async (req, res) => {
     if (!dispo) return res.status(404).json({ message: 'Disponibilité non trouvée' });
     res.json({ message: 'Disponibilité supprimée avec succès' });
   } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+// ===== STYLIST-SPECIFIC FUNCTIONS =====
+
+// Lister les disponibilités d'un stylist (pour le stylist lui-même)
+exports.listerMesDisponibilites = async (req, res) => {
+  try {
+    const stylistId = req.user._id;
+    const { date } = req.query;
+
+    let filter = { 
+      stylist: stylistId, 
+      isActive: true 
+    };
+
+    // Si une date est spécifiée, filtrer par date
+    if (date) {
+      const startOfDay = new Date(date + 'T00:00:00.000Z');
+      const endOfDay = new Date(date + 'T23:59:59.999Z');
+      filter.jour = {
+        $gte: startOfDay,
+        $lte: endOfDay
+      };
+    }
+
+    const disponibilites = await Disponibilite.find(filter)
+      .populate('stylist', 'firstName lastName')
+      .sort({ jour: 1, heureDebut: 1 });
+
+    res.json({ disponibilites });
+  } catch (error) {
+    console.error('Error listing stylist disponibilités:', error);
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+// Ajouter une disponibilité (pour le stylist lui-même)
+exports.ajouterMaDisponibilite = async (req, res) => {
+  try {
+    const stylistId = req.user._id;
+    const { jour, heureDebut, heureFin } = req.body;
+    
+    // Validate required fields
+    if (!jour || !heureDebut || !heureFin) {
+      return res.status(400).json({ 
+        message: 'Tous les champs sont requis',
+        missing: {
+          jour: !jour,
+          heureDebut: !heureDebut,
+          heureFin: !heureFin
+        }
+      });
+    }
+
+    // Validate date format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(jour)) {
+      return res.status(400).json({ 
+        message: 'Format de date invalide. Utilisez YYYY-MM-DD'
+      });
+    }
+
+    // Validate time formats
+    if (!isValidTimeFormat(heureDebut)) {
+      return res.status(400).json({ 
+        message: 'Format d\'heure de début invalide. Utilisez HH:mm'
+      });
+    }
+
+    if (!isValidTimeFormat(heureFin)) {
+      return res.status(400).json({ 
+        message: 'Format d\'heure de fin invalide. Utilisez HH:mm'
+      });
+    }
+
+    // Validate that end time is after start time
+    if (!isEndTimeAfterStartTime(heureDebut, heureFin)) {
+      return res.status(400).json({ 
+        message: 'L\'heure de fin doit être après l\'heure de début'
+      });
+    }
+
+    // Validate that date is not in the past
+    const selectedDate = new Date(jour + 'T00:00:00.000Z');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) {
+      return res.status(400).json({ 
+        message: 'Impossible de créer une disponibilité dans le passé'
+      });
+    }
+
+    // Check for overlapping availabilities
+    const existingDispo = await Disponibilite.findOne({
+      stylist: stylistId,
+      jour: selectedDate,
+      isActive: true,
+      $or: [
+        {
+          heureDebut: { $lt: heureFin },
+          heureFin: { $gt: heureDebut }
+        }
+      ]
+    });
+
+    if (existingDispo) {
+      return res.status(400).json({ 
+        message: 'Il existe déjà une disponibilité qui chevauche cette période'
+      });
+    }
+
+    // Create the availability
+    const disponibilite = new Disponibilite({
+      stylist: stylistId,
+      jour: selectedDate,
+      heureDebut,
+      heureFin,
+      isActive: true
+    });
+
+    await disponibilite.save();
+
+    res.status(201).json({ 
+      message: 'Disponibilité ajoutée avec succès', 
+      disponibilite 
+    });
+  } catch (error) {
+    console.error('Add stylist disponibilite error:', error);
+    
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        message: 'Erreur de validation',
+        errors: validationErrors
+      });
+    }
+
+    res.status(500).json({ 
+      message: 'Erreur serveur lors de la création de la disponibilité', 
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
+    });
+  }
+};
+
+// Modifier une disponibilité (pour le stylist lui-même)
+exports.modifierMaDisponibilite = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const stylistId = req.user._id;
+    const updates = req.body;
+
+    // Check if the availability belongs to the stylist
+    const existingDispo = await Disponibilite.findOne({ _id: id, stylist: stylistId });
+    if (!existingDispo) {
+      return res.status(404).json({ message: 'Disponibilité non trouvée ou accès non autorisé' });
+    }
+
+    // Validate updates if provided
+    if (updates.jour) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(updates.jour)) {
+        return res.status(400).json({ 
+          message: 'Format de date invalide. Utilisez YYYY-MM-DD'
+        });
+      }
+      updates.jour = new Date(updates.jour + 'T00:00:00.000Z');
+    }
+
+    if (updates.heureDebut && !isValidTimeFormat(updates.heureDebut)) {
+      return res.status(400).json({ 
+        message: 'Format d\'heure de début invalide. Utilisez HH:mm'
+      });
+    }
+
+    if (updates.heureFin && !isValidTimeFormat(updates.heureFin)) {
+      return res.status(400).json({ 
+        message: 'Format d\'heure de fin invalide. Utilisez HH:mm'
+      });
+    }
+
+    if (updates.heureDebut && updates.heureFin && !isEndTimeAfterStartTime(updates.heureDebut, updates.heureFin)) {
+      return res.status(400).json({ 
+        message: 'L\'heure de fin doit être après l\'heure de début'
+      });
+    }
+
+    const dispo = await Disponibilite.findByIdAndUpdate(id, updates, { new: true });
+    res.json({ message: 'Disponibilité modifiée avec succès', disponibilite: dispo });
+  } catch (error) {
+    console.error('Modify stylist disponibilite error:', error);
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+// Supprimer une disponibilité (pour le stylist lui-même)
+exports.supprimerMaDisponibilite = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const stylistId = req.user._id;
+
+    // Check if the availability belongs to the stylist
+    const existingDispo = await Disponibilite.findOne({ _id: id, stylist: stylistId });
+    if (!existingDispo) {
+      return res.status(404).json({ message: 'Disponibilité non trouvée ou accès non autorisé' });
+    }
+
+    const dispo = await Disponibilite.findByIdAndDelete(id);
+    res.json({ message: 'Disponibilité supprimée avec succès' });
+  } catch (error) {
+    console.error('Delete stylist disponibilite error:', error);
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 }; 

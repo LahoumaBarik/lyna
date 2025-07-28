@@ -157,6 +157,64 @@ const getEmailTemplate = (type, data) => {
           <p>Best regards,<br>The ${process.env.BUSINESS_NAME || 'Modern Salon'} Team</p>
         </div>
       `
+    },
+    application: {
+      subject: data.status === 'approved' ? 'Application Approved!' : 
+               data.status === 'rejected' ? 'Application Update' : 
+               data.status === 'interview_requested' ? 'Interview Request' : 'Application Update',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>${data.status === 'approved' ? '🎉 Application Approved!' : 
+                data.status === 'rejected' ? 'Application Update' : 
+                data.status === 'interview_requested' ? '📅 Interview Request' : 'Application Update'}</h2>
+          <p>Hi ${data.firstName},</p>
+          ${data.status === 'approved' ? `
+            <p>Congratulations! Your stylist application has been approved. You can now access your stylist dashboard and start managing your schedule.</p>
+            <div style="background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #4caf50;">
+              <p><strong>Next Steps:</strong></p>
+              <ul>
+                <li>Log in to your account</li>
+                <li>Access your stylist dashboard</li>
+                <li>Set up your availability schedule</li>
+                <li>Start accepting bookings</li>
+              </ul>
+            </div>
+          ` : data.status === 'rejected' ? `
+            <p>Thank you for your interest in joining our team. After careful review, we regret to inform you that we cannot proceed with your application at this time.</p>
+            ${data.message ? `<div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
+              <p><strong>Feedback:</strong></p>
+              <p>${data.message}</p>
+            </div>` : ''}
+            <p>We encourage you to continue developing your skills and consider applying again in the future.</p>
+          ` : data.status === 'interview_requested' ? `
+            <p>We've reviewed your application and would like to schedule an interview with you.</p>
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #2196f3;">
+              <p><strong>Interview Details:</strong></p>
+              <p>Please reply to this email with your availability for an interview. We'll work with you to find a convenient time.</p>
+            </div>
+            <p>We look forward to meeting you!</p>
+          ` : `
+            <p>Your application has been received and is currently under review. We will contact you soon with an update.</p>
+          `}
+          <p>Best regards,<br>The ${process.env.BUSINESS_NAME || 'Modern Salon'} Team</p>
+        </div>
+      `
+    },
+    admin: {
+      subject: 'New Stylist Application',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>New Stylist Application</h2>
+          <p>A new stylist application has been submitted:</p>
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>Applicant:</strong> ${data.applicantName}</p>
+            <p><strong>Email:</strong> ${data.applicantEmail}</p>
+            <p><strong>Application ID:</strong> ${data.applicationId}</p>
+          </div>
+          <p>Please review the application in your admin dashboard.</p>
+          <p>Best regards,<br>The ${process.env.BUSINESS_NAME || 'Modern Salon'} Team</p>
+        </div>
+      `
     }
   };
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const { auth, requireRole } = require('../middleware/auth');
-const { Analytics, Reservation, User, Service } = require('../models');
-const moment = require('moment-timezone');
+const { Analytics, Reservation, User, Service, Review } = require('../models');
+const moment = require('moment');
 
 const router = express.Router();
 
@@ -579,6 +579,76 @@ router.get('/export', auth, async (req, res) => {
     res.status(500).json({
       error: 'Internal server error',
       message: 'Unable to export analytics'
+    });
+  }
+});
+
+// GET /api/analytics/stylist-stats - Individual stylist statistics
+router.get('/stylist-stats', auth, requireAnalyticsAccess, async (req, res) => {
+  try {
+    const stylistId = req.user.role === 'stylist' ? req.user._id : req.query.stylistId;
+    
+    if (!stylistId) {
+      return res.status(400).json({
+        error: 'Stylist ID required',
+        message: 'Please provide a stylist ID'
+      });
+    }
+
+    // Verify stylist exists
+    const stylist = await User.findById(stylistId);
+    if (!stylist) {
+      return res.status(404).json({
+        error: 'Stylist not found',
+        message: 'The specified stylist does not exist'
+      });
+    }
+
+    // Get stylist's appointments
+    const appointments = await Reservation.find({ stylist: stylistId })
+      .populate('client', 'firstName lastName')
+      .populate('services.service', 'name price')
+      .sort({ date: -1 });
+
+    const now = new Date();
+    const totalAppointments = appointments.length;
+    const completedAppointments = appointments.filter(apt => new Date(apt.date) < now).length;
+    const upcomingAppointments = appointments.filter(apt => new Date(apt.date) >= now).length;
+
+    // Calculate average rating (if reviews exist)
+    const reviews = await Review.find({ stylist: stylistId });
+    const averageRating = reviews.length > 0 
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+      : 0;
+
+    // Get recent appointments (last 30 days)
+    const thirtyDaysAgo = moment().subtract(30, 'days').toDate();
+    const recentAppointments = appointments.filter(apt => new Date(apt.date) >= thirtyDaysAgo);
+
+    // Calculate earnings (if payment data exists)
+    const totalEarnings = appointments.reduce((sum, apt) => {
+      const servicesTotal = apt.services.reduce((serviceSum, serviceItem) => {
+        return serviceSum + (serviceItem.service?.price || serviceItem.price || 0);
+      }, 0);
+      return sum + servicesTotal;
+    }, 0);
+
+    res.json({
+      totalAppointments,
+      completedAppointments,
+      upcomingAppointments,
+      averageRating,
+      totalEarnings,
+      recentAppointments: recentAppointments.length,
+      appointments: appointments.slice(0, 10) // Return last 10 appointments
+    });
+
+  } catch (error) {
+    console.error('Stylist stats error:', error);
+    res.status(500).json({
+      error: 'Failed to fetch stylist statistics',
+      message: 'An error occurred while retrieving stylist data',
+      details: error.message
     });
   }
 });

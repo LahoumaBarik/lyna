@@ -55,8 +55,20 @@ const validateDisponibilite = [
 // Route pour l'admin : lister TOUTES les disponibilités (protégée)
 router.get('/', auth, requireRole('admin'), disponibiliteController.listerDisponibilites);
 
+// Route pour les stylistes : lister leurs propres disponibilités
+router.get('/my-availabilities', auth, requireRole('stylist'), disponibiliteController.listerMesDisponibilites);
+
+// Route flexible pour tout utilisateur authentifié : lister leurs propres disponibilités
+router.get('/my-schedule', auth, disponibiliteController.listerMesDisponibilites);
+
 // Ajouter une disponibilité (auth admin requis)
 router.post('/', auth, requireRole('admin'), validateDisponibilite, disponibiliteController.ajouterDisponibilite);
+
+// Route pour les stylistes : ajouter leurs propres disponibilités
+router.post('/my-availabilities', auth, requireRole('stylist'), disponibiliteController.ajouterMaDisponibilite);
+
+// Route flexible pour tout utilisateur authentifié : ajouter leurs propres disponibilités
+router.post('/my-schedule', auth, disponibiliteController.ajouterMaDisponibilite);
 
 // Route publique pour les clients : lister les disponibilités par coiffeuse
 router.get('/coiffeuse/:coiffeuseId', disponibiliteController.listerDisponibilites);
@@ -64,7 +76,19 @@ router.get('/coiffeuse/:coiffeuseId', disponibiliteController.listerDisponibilit
 // Modifier une disponibilité (auth admin requis)
 router.put('/:id', auth, requireRole('admin'), validateDisponibilite, disponibiliteController.modifierDisponibilite);
 
+// Route pour les stylistes : modifier leurs propres disponibilités
+router.put('/my-availabilities/:id', auth, requireRole('stylist'), disponibiliteController.modifierMaDisponibilite);
+
+// Route flexible pour tout utilisateur authentifié : modifier leurs propres disponibilités
+router.put('/my-schedule/:id', auth, disponibiliteController.modifierMaDisponibilite);
+
 // Supprimer une disponibilité (auth admin requis)
 router.delete('/:id', auth, requireRole('admin'), disponibiliteController.supprimerDisponibilite);
+
+// Route pour les stylistes : supprimer leurs propres disponibilités
+router.delete('/my-availabilities/:id', auth, requireRole('stylist'), disponibiliteController.supprimerMaDisponibilite);
+
+// Route flexible pour tout utilisateur authentifié : supprimer leurs propres disponibilités
+router.delete('/my-schedule/:id', auth, disponibiliteController.supprimerMaDisponibilite);
 
 module.exports = router; 

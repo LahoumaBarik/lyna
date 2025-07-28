@@ -24,8 +24,18 @@ import StylistProfilePage from './pages/StylistProfile';
 import FAQPage from './pages/FAQ';
 import Profile from './pages/Profile';
 import Reviews from './pages/Reviews';
+import StylistApplication from './pages/StylistApplication';
+import StylistApplicationAdmin from './pages/StylistApplicationAdmin';
 import './App.css';
 import './typeform-theme.css';
+
+// Suppress React Router deprecation warnings
+const router = {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true
+  }
+};
 
 // Protected Route Component
 const ProtectedRoute = ({ roles, children }) => {
@@ -155,7 +165,7 @@ function AppContent() {
   }
 
   return (
-    <Router>
+    <Router {...router}>
       <div className="App">
         <Navbar user={user} onLogout={logout} />
         <Routes>
@@ -227,6 +237,14 @@ function AppContent() {
             element={
               <ProtectedRoute roles={['client', 'stylist', 'admin']}>
                 <Reviews />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/stylist-application" 
+            element={
+              <ProtectedRoute roles={['client']}>
+                <StylistApplication />
               </ProtectedRoute>
             } 
           />

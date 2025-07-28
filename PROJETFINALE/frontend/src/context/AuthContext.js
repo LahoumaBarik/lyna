@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
+import { API_BASE_URL, SOCKET_URL } from '../config/api';
 
 // Initial state
 const initialState = {
@@ -126,7 +127,7 @@ export const AuthProvider = ({ children }) => {
   // Set up axios defaults and interceptors
   useEffect(() => {
     // Set base URL for axios
-    axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    axios.defaults.baseURL = API_BASE_URL;
     
     const token = localStorage.getItem('accessToken');
     if (token) {
@@ -244,7 +245,7 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize socket connection
   const initializeSocket = (token) => {
-    const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
+    const socket = io(SOCKET_URL, {
       auth: { token },
       transports: ['websocket'],
       forceNew: true

@@ -110,15 +110,11 @@ exports.creerReservation = async (req, res) => {
     // Validate time slot availability
     const slotValidation = await validateReservationSlot(stylistId, date, startTime, endTime);
     if (!slotValidation.isAvailable) {
-      // TEMPORARILY DISABLED: Waitlist functionality
-      // Skip waitlist for now to fix reservation issues
-      console.log('⚠️ Slot not available, but allowing reservation for testing');
-      
-      // return res.status(409).json({
-      //   error: 'Time slot not available',
-      //   code: 'SLOT_UNAVAILABLE',
-      //   message: slotValidation.reason
-      // });
+      return res.status(409).json({
+        error: 'Time slot not available',
+        code: 'SLOT_UNAVAILABLE',
+        message: slotValidation.reason
+      });
     }
 
     // Calculate pricing with taxes and discounts
@@ -583,6 +579,11 @@ exports.modifierReservation = async (req, res) => {
       const newDate = updates.date || moment(reservation.date).format('YYYY-MM-DD');
       const newStartTime = updates.startTime || reservation.startTime;
       
+      console.log('🔍 Backend time debugging:');
+      console.log('Received startTime:', newStartTime);
+      console.log('Received startTime type:', typeof newStartTime);
+      console.log('Received date:', newDate);
+      
       // Calculate duration from current services
       const totalDuration = reservation.services.reduce((acc, service) => acc + service.duration, 0);
       const newEndTime = moment(`${newDate} ${newStartTime}`, 'YYYY-MM-DD HH:mm')
@@ -629,6 +630,54 @@ exports.modifierReservation = async (req, res) => {
     // Convert date string to Date object if updating date
     if (updateData.date) {
       updateData.date = new Date(updateData.date);
+    }
+
+    // If startTime is being updated, recalculate endTime
+    if (updateData.startTime) {
+      const totalDuration = reservation.services.reduce((acc, service) => acc + service.duration, 0);
+      
+      // Ensure newDate is always a string in YYYY-MM-DD format
+      let newDate;
+      if (updateData.date) {
+        // If updateData.date is a Date object, format it
+        if (updateData.date instanceof Date) {
+          newDate = moment(updateData.date).format('YYYY-MM-DD');
+        } else {
+          // If it's already a string, use it as is
+          newDate = updateData.date;
+        }
+      } else {
+        // Use the existing reservation date
+        newDate = moment(reservation.date).format('YYYY-MM-DD');
+      }
+      
+      console.log('🔍 Date debugging:');
+      console.log('updateData.date:', updateData.date);
+      console.log('updateData.date type:', typeof updateData.date);
+      console.log('reservation.date:', reservation.date);
+      console.log('newDate:', newDate);
+      console.log('updateData.startTime:', updateData.startTime);
+      console.log('totalDuration:', totalDuration);
+      
+      // Fix the endTime calculation
+      const dateTimeString = `${newDate} ${updateData.startTime}`;
+      console.log('dateTimeString for moment:', dateTimeString);
+      
+      const startMoment = moment(dateTimeString, 'YYYY-MM-DD HH:mm');
+      console.log('startMoment.isValid():', startMoment.isValid());
+      console.log('startMoment.format():', startMoment.format());
+      
+      const endMoment = startMoment.clone().add(totalDuration, 'minutes');
+      const newEndTime = endMoment.format('HH:mm');
+      
+      updateData.endTime = newEndTime;
+      console.log('Recalculated endTime:', { 
+        startTime: updateData.startTime, 
+        endTime: newEndTime, 
+        duration: totalDuration,
+        startMoment: startMoment.format(),
+        endMoment: endMoment.format()
+      });
     }
 
     console.log('Applying updates:', updateData);

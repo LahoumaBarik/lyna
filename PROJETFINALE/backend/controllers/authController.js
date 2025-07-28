@@ -163,13 +163,21 @@ exports.login = async (req, res) => {
     // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      // Update failed login attempts
-      user.loginAttempts = (user.loginAttempts || 0) + 1;
-      user.lastFailedLogin = new Date();
+      // Update failed login attempts - use proper object structure
+      if (!user.loginAttempts) {
+        user.loginAttempts = { count: 0 };
+      }
       
-      if (user.loginAttempts >= 5) {
-        user.accountLocked = true;
-        user.lockUntil = Date.now() + 30 * 60 * 1000; // 30 minutes
+      // Ensure loginAttempts is an object
+      if (typeof user.loginAttempts !== 'object') {
+        user.loginAttempts = { count: 0 };
+      }
+      
+      user.loginAttempts.count = (user.loginAttempts.count || 0) + 1;
+      user.loginAttempts.lastAttempt = new Date();
+      
+      if (user.loginAttempts.count >= 5) {
+        user.loginAttempts.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
         await user.save();
         
         return res.status(423).json({ 
@@ -188,7 +196,7 @@ exports.login = async (req, res) => {
     }
 
     // Check if account is locked
-    if (user.accountLocked && user.lockUntil && user.lockUntil > Date.now()) {
+    if (user.loginAttempts?.lockedUntil && user.loginAttempts.lockedUntil > Date.now()) {
       return res.status(423).json({ 
         error: 'Account locked',
         code: 'ACCOUNT_LOCKED',
@@ -215,10 +223,11 @@ exports.login = async (req, res) => {
 
     // Reset failed login attempts on successful login and update last login
     const updateFields = { lastLogin: new Date() };
-    if (user.loginAttempts > 0) {
-      updateFields.loginAttempts = 0;
-      updateFields.accountLocked = false;
-      updateFields.$unset = { lockUntil: 1 };
+    if (user.loginAttempts?.count > 0) {
+      updateFields.loginAttempts = { 
+        count: 0,
+        lastAttempt: user.loginAttempts.lastAttempt // Keep the last attempt time
+      };
     }
     
     // Use updateOne to avoid address field issues
@@ -411,6 +420,18 @@ exports.updateProfile = async (req, res) => {
         updates[key] = req.body[key];
       }
     });
+
+    // Handle address field transformation
+    if (updates.address && typeof updates.address === 'string') {
+      // Transform string address into object format
+      updates.address = {
+        street: updates.address,
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'US'
+      };
+    }
 
     const user = await User.findByIdAndUpdate(
       userId,

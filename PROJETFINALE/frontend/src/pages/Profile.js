@@ -48,7 +48,7 @@ function Profile() {
         lastName: user.lastName || '',
         email: user.email || '',
         phone: user.phone || '',
-        address: user.stylistInfo?.address || user.clientInfo?.address || '',
+        address: user.address?.street || user.address || '',
         description: user.stylistInfo?.description || user.clientInfo?.notes || ''
       });
     }
@@ -89,7 +89,7 @@ function Profile() {
         lastName: user.lastName || '',
         email: user.email || '',
         phone: user.phone || '',
-        address: user.stylistInfo?.address || user.clientInfo?.address || '',
+        address: user.address?.street || user.address || '',
         description: user.stylistInfo?.description || user.clientInfo?.notes || ''
       });
     }
