@@ -86,14 +86,14 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
     // Set to Monday of the current week
     startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
     
-    DAYS_OF_WEEK.forEach((day, index) => {
+    DAYS_OF_WEEK.forEach((dayObj, index) => {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + index);
       // Use local date string to avoid timezone issues
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
-      dates[day.key] = `${year}-${month}-${day}`;
+      dates[dayObj.key] = `${year}-${month}-${day}`;
     });
     
     return dates;
