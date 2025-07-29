@@ -10,7 +10,9 @@ const getApiUrl = () => {
 };
 
 export const API_URL = getApiUrl();
-export const API_BASE_URL = `${API_URL}/api`;
+export const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? '/api'  // In production, just /api since backend serves frontend
+  : `${API_URL}/api`;  // In development, full URL
 
 // Socket.IO configuration
 export const SOCKET_URL = process.env.NODE_ENV === 'production' 
