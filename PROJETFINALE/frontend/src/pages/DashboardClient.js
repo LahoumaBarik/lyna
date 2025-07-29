@@ -38,7 +38,6 @@ import {
   Work
 } from '@mui/icons-material';
 import axios from 'axios';
-import { API_BASE_URL } from '../config/api';
 
 function DashboardClient() {
   const { user } = useAuth();
@@ -85,25 +84,42 @@ function DashboardClient() {
   useEffect(() => {
     const fetchReservations = async () => {
       try {
+        setLoading(true);
+        setError('');
+        
         const token = localStorage.getItem('accessToken');
-        if (!token) return;
+        if (!token) {
+          setLoading(false);
+          return;
+        }
 
         const response = await axios.get('/reservations', {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        if (response.data.success) {
+        // Handle different response structures
+        if (response.data && response.data.success && response.data.data) {
           setReservations(response.data.data);
+        } else if (Array.isArray(response.data)) {
+          setReservations(response.data);
+        } else if (response.data && Array.isArray(response.data.reservations)) {
+          setReservations(response.data.reservations);
         } else {
-          setReservations(Array.isArray(response.data) ? response.data : []);
+          setReservations([]);
         }
       } catch (e) {
+        console.error('Error fetching reservations:', e);
         setError('Erreur lors du chargement des réservations');
+        setReservations([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     if (user) {
       fetchReservations();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
@@ -204,7 +220,7 @@ function DashboardClient() {
         services: modificationForm.services || modifyingReservation.services
       };
 
-      const response = await axios.patch(`${API_BASE_URL}/reservations/${modifyingReservation._id}`, updateData, {
+      const response = await axios.patch(`/reservations/${modifyingReservation._id}`, updateData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -234,7 +250,7 @@ function DashboardClient() {
   const handleMarkCompleted = async (reservationId) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.patch(`${API_BASE_URL}/reservations/${reservationId}`, { status: 'completed' }, {
+      const response = await axios.patch(`/reservations/${reservationId}`, { status: 'completed' }, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
