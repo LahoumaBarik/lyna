@@ -18,9 +18,19 @@ import {
   CircularProgress,
   Chip,
   IconButton,
-  Tooltip
+  Tooltip,
+  Card,
+  CardContent
 } from '@mui/material';
-import { Add, Delete, Edit, Schedule } from '@mui/icons-material';
+import { 
+  Add, 
+  Delete, 
+  Edit, 
+  Schedule, 
+  ArrowBack, 
+  ArrowForward, 
+  Today 
+} from '@mui/icons-material';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
