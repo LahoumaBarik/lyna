@@ -340,4 +340,6 @@ function ResetPasswordConfirm() {
       </Container>
     </Box>
   );
-} 
+}
+
+export default ResetPasswordConfirm; 
