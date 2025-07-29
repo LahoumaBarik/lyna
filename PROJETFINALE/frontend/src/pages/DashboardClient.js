@@ -56,6 +56,31 @@ function DashboardClient() {
   const [newTime, setNewTime] = useState('');
   const navigate = useNavigate();
 
+  // Check if user role has changed (e.g., after stylist approval)
+  useEffect(() => {
+    const checkRoleChange = async () => {
+      if (user && user.role === 'client') {
+        try {
+          const token = localStorage.getItem('accessToken');
+          const response = await axios.get('/auth/me', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (response.data.data && response.data.data.role !== 'client') {
+            setSuccess('Your role has been updated! Please refresh the page to access your new dashboard.');
+            setTimeout(() => {
+              window.location.reload();
+            }, 3000);
+          }
+        } catch (error) {
+          console.error('Failed to check role:', error);
+        }
+      }
+    };
+
+    checkRoleChange();
+  }, [user]);
+
   // Fetch reservations on component mount
   useEffect(() => {
     const fetchReservations = async () => {

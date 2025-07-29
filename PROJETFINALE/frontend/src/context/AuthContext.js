@@ -517,6 +517,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Refresh user data (useful after role changes)
+  const refreshUserData = async () => {
+    try {
+      const response = await axios.get('/auth/me');
+      
+      if (response.data.code === 'USER_DATA_SUCCESS' && response.data.data) {
+        dispatch({
+          type: AUTH_ACTIONS.UPDATE_USER,
+          payload: response.data.data
+        });
+        return response.data.data;
+      } else {
+        throw new Error('Invalid user data');
+      }
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+      // If refresh fails, logout the user
+      logout();
+      throw error;
+    }
+  };
+
   // Check authentication on app load
   useEffect(() => {
     const checkAuth = async () => {
@@ -563,6 +585,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateProfile,
+    refreshUserData,
     fetchNotifications,
     markNotificationAsRead,
     markAllNotificationsAsRead

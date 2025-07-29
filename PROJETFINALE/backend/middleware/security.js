@@ -32,7 +32,7 @@ const generalLimiter = createRateLimiter(
 // Strict rate limiter for auth endpoints (relaxed for development)
 const authLimiter = createRateLimiter(
   15 * 60 * 1000, // 15 minutes
-  process.env.NODE_ENV === 'development' ? 200 : 5, // 200 for dev, 5 for production
+  process.env.NODE_ENV === 'development' ? 200 : 50, // 200 for dev, 50 for production
   'Too many authentication attempts, please try again later'
 );
 
