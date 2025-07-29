@@ -32,7 +32,6 @@ import {
   Today 
 } from '@mui/icons-material';
 import axios from 'axios';
-import { API_BASE_URL } from '../config/api';
 
 const DAYS_OF_WEEK = [
   { key: 'monday', label: 'Lundi', short: 'Lun' },
@@ -90,15 +89,23 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
     DAYS_OF_WEEK.forEach((day, index) => {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + index);
-      dates[day.key] = date.toISOString().split('T')[0];
+      // Use local date string to avoid timezone issues
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      dates[day.key] = `${year}-${month}-${day}`;
     });
     
     return dates;
   };
 
   const isToday = (dateString) => {
-    const today = new Date().toISOString().split('T')[0];
-    return dateString === today;
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayString = `${year}-${month}-${day}`;
+    return dateString === todayString;
   };
 
   const weekDates = getWeekDates(currentWeek);
@@ -117,7 +124,7 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
     
     try {
       const targetUser = selectedStylist || user;
-      const response = await axios.get(`${API_BASE_URL}/disponibilites/my-schedule`, {
+      const response = await axios.get('/disponibilites/my-schedule', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
@@ -176,7 +183,7 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
     }
 
     try {
-      const response = await axios.delete(`${API_BASE_URL}/disponibilites/my-schedule/${availabilityId}`, {
+      const response = await axios.delete(`/disponibilites/my-schedule/${availabilityId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
@@ -202,8 +209,8 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
 
     try {
       const url = editMode 
-        ? `${API_BASE_URL}/disponibilites/my-schedule/${selectedSlot._id}`
-        : `${API_BASE_URL}/disponibilites/my-schedule`;
+        ? `/disponibilites/my-schedule/${selectedSlot._id}`
+        : `/disponibilites/my-schedule`;
       
       const method = editMode ? 'PUT' : 'POST';
 

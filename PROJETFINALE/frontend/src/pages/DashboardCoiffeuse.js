@@ -53,7 +53,6 @@ import {
 } from '@mui/icons-material';
 import WeeklyCalendar from '../components/WeeklyCalendar';
 import axios from 'axios';
-import { API_BASE_URL } from '../config/api';
 
 function DashboardCoiffeuse() {
   const { user } = useAuth();
@@ -112,7 +111,7 @@ function DashboardCoiffeuse() {
     try {
       setAppointmentsLoading(true);
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get(`${API_BASE_URL}/reservations`, {
+      const response = await axios.get('/reservations', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -135,7 +134,7 @@ function DashboardCoiffeuse() {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get(`${API_BASE_URL}/analytics/stylist-stats`, {
+      const response = await axios.get('/analytics/stylist-stats', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -153,7 +152,7 @@ function DashboardCoiffeuse() {
     try {
       setLoading(true);
       const token = localStorage.getItem('accessToken');
-      const response = await axios.put(`${API_BASE_URL}/users/me`, {
+      const response = await axios.put('/users/me', {
         firstName: profileForm.firstName,
         lastName: profileForm.lastName,
         phone: profileForm.phone,
