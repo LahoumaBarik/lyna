@@ -96,7 +96,7 @@ router.post('/reset-password', async (req, res) => {
     if (user) {
       const token = crypto.randomBytes(32).toString('hex');
       resetTokens[token] = { userId: user._id, expires: Date.now() + 3600 * 1000 };
-      const resetLink = `http://localhost:3000/reset-password/confirm?token=${token}`;
+      const resetLink = `${process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/confirm?token=${token}`;
       // Configure ton transporteur mail ici
       const transporter = nodemailer.createTransporter({
         service: 'gmail',

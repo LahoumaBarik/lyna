@@ -411,23 +411,20 @@ const EnhancedDashboardAdmin = () => {
                     onClick={() => {
                       const testPhone = prompt('Enter your phone number (with country code):');
                       if (testPhone) {
-                        fetch('/api/notifications/admin/test-sms', {
-                          method: 'POST',
+                        axios.post('/notifications/admin/test-sms', {
+                          phoneNumber: testPhone,
+                          message: 'Test SMS from your salon management system! 🎉'
+                        }, {
                           headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                          },
-                          body: JSON.stringify({
-                            phoneNumber: testPhone,
-                            message: 'Test SMS from your salon management system! 🎉'
-                          })
+                          }
                         })
-                        .then(response => response.json())
-                        .then(data => {
-                          if (data.success) {
+                        .then(response => {
+                          if (response.data.success) {
                             alert('✅ SMS sent successfully!');
                           } else {
-                            alert('❌ SMS failed: ' + data.error);
+                            alert('❌ SMS failed: ' + response.data.error);
                           }
                         })
                         .catch(error => {

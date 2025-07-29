@@ -54,7 +54,7 @@ import {
   Visibility
 } from '@mui/icons-material';
 import WeeklyCalendar from '../components/WeeklyCalendar';
-import { API_BASE_URL } from '../config/api';
+import axios from 'axios';
 
 // Valid service categories
 const CATEGORIES = [
@@ -68,8 +68,6 @@ const CATEGORIES = [
   { value: 'kids', label: 'Enfant' },
   { value: 'package', label: 'Package' }
 ];
-
-const API_URL = API_BASE_URL;
 
 // Extracted TabPanel to top-level
 function TabPanel({ children, value, index }) {
@@ -191,24 +189,17 @@ function DashboardAdmin() {
     try {
       setLoading(true);
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`${API_URL}/services`, {
+      const res = await axios.get('/services', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.status === 403) {
-        setServiceError('Accès refusé : admin uniquement.');
-        handleForbidden();
+      
+      if (res.status !== 200) {
+        setServiceError('Erreur lors du chargement des services');
         return;
       }
-      if (res.status === 401) {
-        setServiceError('Session expirée. Veuillez vous reconnecter.');
-        handleForbidden();
-        return;
-      }
-      const data = await res.json();
-      setServices(Array.isArray(data) ? data : []);
+      setServices(res.data);
     } catch (err) {
       setServiceError('Erreur lors du chargement des services');
-      setServices([]);
     } finally {
       setLoading(false);
     }
@@ -219,19 +210,17 @@ function DashboardAdmin() {
     try {
       setLoading(true);
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`${API_URL}/coiffeuses`, {
+      const res = await axios.get('/coiffeuses', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.status === 401) {
-        setCoiffeuseError('Session expirée. Veuillez vous reconnecter.');
-        handleForbidden();
+      
+      if (res.status !== 200) {
+        setCoiffeuseError('Erreur lors du chargement des coiffeuses');
         return;
       }
-      const data = await res.json();
-      setCoiffeuses(Array.isArray(data) ? data : []);
+      setCoiffeuses(res.data);
     } catch (err) {
       setCoiffeuseError('Erreur lors du chargement des coiffeuses');
-      setCoiffeuses([]);
     } finally {
       setLoading(false);
     }
@@ -243,21 +232,18 @@ function DashboardAdmin() {
       setLoading(true);
       const token = localStorage.getItem('accessToken');
       
-      const res = await fetch(`${API_URL}/disponibilites`, {
+      const res = await axios.get('/disponibilites', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (res.status === 401) {
-        setDispoError('Session expirée. Veuillez vous reconnecter.');
-        handleForbidden();
+      if (res.status !== 200) {
+        setDispoError('Erreur lors du chargement des disponibilités');
         return;
       }
       
-      const data = await res.json();
-      setDispos(Array.isArray(data) ? data : []);
+      setDispos(res.data);
     } catch (err) {
       setDispoError('Erreur lors du chargement des disponibilités');
-      setDispos([]);
     } finally {
       setLoading(false);
     }
@@ -268,21 +254,18 @@ function DashboardAdmin() {
     try {
       setLoading(true);
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`${API_URL}/reservations`, {
+      const res = await axios.get('/reservations', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (res.status === 401) {
-        setReservationError('Session expirée. Veuillez vous reconnecter.');
-        handleForbidden();
+      if (res.status !== 200) {
+        setReservationError('Erreur lors du chargement des réservations');
         return;
       }
       
-      const data = await res.json();
-      setReservations(Array.isArray(data) ? data : []);
+      setReservations(res.data);
     } catch (err) {
       setReservationError('Erreur lors du chargement des réservations');
-      setReservations([]);
     } finally {
       setLoading(false);
     }
@@ -293,27 +276,16 @@ function DashboardAdmin() {
     try {
       setApplicationsLoading(true);
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${API_URL}/stylist-applications?status=${statusFilter}&page=${page}`, {
+      const response = await axios.get(`/stylist-applications?status=${statusFilter}&page=${page}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (response.status === 403) {
-        setApplicationsError('Accès refusé : admin uniquement.');
-        handleForbidden();
-        return;
-      }
-      if (response.status === 401) {
-        setApplicationsError('Session expirée. Veuillez vous reconnecter.');
-        handleForbidden();
-        return;
-      }
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Erreur lors du chargement des candidatures');
       }
       
-      const data = await response.json();
-      setApplications(data.applications);
-      setTotalPages(data.pagination.total);
+      setApplications(response.data.applications);
+      setTotalPages(response.data.pagination.total);
     } catch (error) {
       console.error('Error fetching applications:', error);
       setApplicationsError('Erreur lors du chargement des candidatures');
@@ -325,16 +297,15 @@ function DashboardAdmin() {
   const handleViewApplication = async (applicationId) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${API_URL}/stylist-applications/${applicationId}`, {
+      const response = await axios.get(`/stylist-applications/${applicationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Erreur lors du chargement de la candidature');
       }
       
-      const data = await response.json();
-      setSelectedApplication(data.application);
+      setSelectedApplication(response.data.application);
       setApplicationDialogOpen(true);
     } catch (error) {
       console.error('Error fetching application:', error);
@@ -357,7 +328,7 @@ function DashboardAdmin() {
     try {
       setActionLoading(true);
       const token = localStorage.getItem('accessToken');
-      const url = `${API_URL}/stylist-applications/${selectedApplication._id}`;
+      const url = `/stylist-applications/${selectedApplication._id}`;
       
       let endpoint = '';
       let payload = {};
@@ -369,41 +340,33 @@ function DashboardAdmin() {
           break;
         case 'reject':
           endpoint = '/reject';
-          payload = { 
-            reviewNotes: actionData.reviewNotes,
-            rejectionMessage: actionData.rejectionMessage 
-          };
+          payload = { rejectionMessage: actionData.rejectionMessage };
           break;
         case 'interview':
-          endpoint = '/interview';
+          endpoint = '/request-interview';
           payload = { 
-            location: actionData.location,
-            notes: actionData.interviewNotes 
+            interviewNotes: actionData.interviewNotes,
+            location: actionData.location
           };
           break;
         default:
-          throw new Error('Action type not supported');
+          throw new Error('Action type invalide');
       }
       
-      const response = await fetch(`${url}${endpoint}`, {
-        method: 'PUT',
+      const response = await axios.put(`${url}${endpoint}`, payload, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
+        }
       });
       
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Erreur lors de l\'action');
       }
       
-      // Refresh applications list
-      await fetchApplications();
       setActionDialogOpen(false);
-      setApplicationDialogOpen(false);
-      setSelectedApplication(null);
-      
+      setActionData({ reviewNotes: '', rejectionMessage: '', interviewNotes: '', location: '' });
+      fetchApplications();
     } catch (error) {
       console.error('Error submitting action:', error);
       setApplicationsError('Erreur lors de l\'action');
@@ -447,62 +410,37 @@ function DashboardAdmin() {
 
   const handleServiceSubmit = async (e) => {
     e.preventDefault();
-    setServiceError('');
-    setServiceSuccess('');
     setLoading(true);
-
+    setServiceError('');
+    
     try {
-      // Frontend validation
-      const { name, description, duration, price, category } = serviceForm;
-      
-      if (!name?.trim() || !description?.trim() || !duration || !price || !category) {
-        setServiceError('Tous les champs sont requis');
-        setLoading(false);
-        return;
-      }
-
-      // Cast and validate duration
-      const durationNumber = Number(duration);
-      if (isNaN(durationNumber) || durationNumber < 15) {
-        setServiceError('La durée doit être un nombre supérieur ou égal à 15 minutes');
-        setLoading(false);
-        return;
-      }
-
-      // Cast and validate price
-      const priceNumber = Number(price);
-      if (isNaN(priceNumber) || priceNumber < 0) {
-        setServiceError('Le prix doit être un nombre positif');
-        setLoading(false);
-        return;
-      }
-
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        setServiceError('Token d\'authentification manquant');
+        setServiceError('Session expirée. Veuillez vous reconnecter.');
         handleForbidden();
         return;
       }
 
       const method = editServiceId ? 'PUT' : 'POST';
-      const url = editServiceId ? `${API_URL}/services/${editServiceId}` : `${API_URL}/services`;
+      const url = editServiceId ? `/services/${editServiceId}` : `/services`;
       
       // Prepare payload with proper types
       const payload = {
-        name: name.trim(),
-        description: description.trim(),
-        duration: durationNumber,
-        price: priceNumber,
-        category: category.trim()
+        name: serviceForm.name.trim(),
+        description: serviceForm.description.trim(),
+        duration: parseInt(serviceForm.duration, 10),
+        price: parseFloat(serviceForm.price),
+        category: serviceForm.category
       };
 
-      const res = await fetch(url, {
+      const res = await axios({
         method,
+        url,
+        data: payload,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
+        }
       });
 
       if (res.status === 403) {
@@ -519,10 +457,10 @@ function DashboardAdmin() {
 
       let data;
       try {
-        const responseText = await res.text();
+        const responseText = res.data;
         
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
+        if (responseText && typeof responseText === 'object') {
+          data = responseText;
         } else {
           console.error('Empty response body');
           setServiceError(`Erreur serveur (${res.status}): Réponse vide`);
@@ -530,12 +468,11 @@ function DashboardAdmin() {
         }
       } catch (parseError) {
         console.error('Failed to parse response as JSON:', parseError);
-        console.error('Response text was:', parseError.responseText);
         setServiceError(`Erreur serveur (${res.status}): ${res.statusText}`);
         return;
       }
 
-      if (!res.ok) {
+      if (res.status !== 200) {
         console.error('Server response error:', data);
         
         // Handle validation errors from backend
@@ -607,8 +544,7 @@ function DashboardAdmin() {
     setLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`${API_URL}/services/${id}`, {
-        method: 'DELETE',
+      const res = await axios.delete(`/services/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -676,7 +612,7 @@ function DashboardAdmin() {
       }
 
       const method = editCoiffeuseId ? 'PUT' : 'POST';
-      const url = editCoiffeuseId ? `${API_URL}/coiffeuses/${editCoiffeuseId}` : `${API_URL}/coiffeuses`;
+      const url = editCoiffeuseId ? `/coiffeuses/${editCoiffeuseId}` : `/coiffeuses`;
 
       let body = {
         firstName: firstName.trim(),
@@ -694,13 +630,14 @@ function DashboardAdmin() {
         body.password = 'password123';
       }
 
-      const res = await fetch(url, {
+      const res = await axios({
         method,
+        url,
+        data: body,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(body)
+        }
       });
 
       if (res.status === 401) {
@@ -709,8 +646,8 @@ function DashboardAdmin() {
         return;
       }
 
-      const data = await res.json();
-      if (!res.ok) {
+      const data = res.data;
+      if (res.status !== 200) {
         // Handle validation errors from backend
         if (data.errors && Array.isArray(data.errors)) {
           setCoiffeuseError(data.errors.join(', '));
@@ -752,8 +689,7 @@ function DashboardAdmin() {
     setLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`${API_URL}/coiffeuses/${id}`, {
-        method: 'DELETE',
+      const res = await axios.delete(`/coiffeuses/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -853,7 +789,7 @@ function DashboardAdmin() {
       }
 
       const method = editDispoId ? 'PUT' : 'POST';
-      const url = editDispoId ? `${API_URL}/disponibilites/${editDispoId}` : `${API_URL}/disponibilites`;
+      const url = editDispoId ? `/disponibilites/${editDispoId}` : `/disponibilites`;
 
       const payload = {
         stylist,
@@ -862,13 +798,14 @@ function DashboardAdmin() {
         heureFin
       };
 
-      const res = await fetch(url, {
+      const res = await axios({
         method,
+        url,
+        data: payload,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
+        }
       });
 
       if (res.status === 401) {
@@ -879,7 +816,7 @@ function DashboardAdmin() {
 
       let data;
       try {
-        const responseText = await res.text();
+        const responseText = res.data;
         
         if (responseText.trim()) {
           data = JSON.parse(responseText);
@@ -894,7 +831,7 @@ function DashboardAdmin() {
         return;
       }
 
-      if (!res.ok) {
+      if (res.status !== 200) {
         console.error('Disponibilité server response error:', data);
         
         // Handle validation errors from backend
@@ -940,8 +877,7 @@ function DashboardAdmin() {
     setLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`${API_URL}/disponibilites/${id}`, {
-        method: 'DELETE',
+      const res = await axios.delete(`/disponibilites/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -974,8 +910,7 @@ function DashboardAdmin() {
     setLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`${API_URL}/reservations/${id}`, {
-        method: 'DELETE',
+      const res = await axios.delete(`/reservations/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
