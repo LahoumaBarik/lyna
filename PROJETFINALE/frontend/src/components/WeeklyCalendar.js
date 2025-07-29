@@ -214,6 +214,12 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
       
       const method = editMode ? 'PUT' : 'POST';
 
+      // Add the stylist ID to the formData
+      const requestData = {
+        ...formData,
+        stylist: user._id
+      };
+
       const response = await axios({
         method,
         url,
@@ -221,7 +227,7 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
-        data: formData
+        data: requestData
       });
 
       if (response.status !== 200) {
