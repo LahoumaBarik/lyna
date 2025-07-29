@@ -60,8 +60,6 @@ import {
 import LoginModal from '../components/LoginModal';
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
 const steps = [
   'Politique du salon',
   'Choisir les services',
@@ -110,11 +108,10 @@ function ReservationTypeform() {
 
   // Récupère les services
   useEffect(() => {
-    fetch(API_URL + '/services')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setServices(data);
+    axios.get('/services')
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setServices(res.data);
         }
       })
       .catch(err => setError('Erreur lors du chargement des services'));
@@ -122,11 +119,10 @@ function ReservationTypeform() {
 
   // Récupère les coiffeuses
   useEffect(() => {
-    fetch(API_URL + '/coiffeuses')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setCoiffeuses(data.filter(c => c.role === 'stylist'));
+    axios.get('/coiffeuses')
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setCoiffeuses(res.data.filter(c => c.role === 'stylist'));
         }
       })
       .catch(err => setError('Erreur lors du chargement des coiffeuses'));
@@ -147,7 +143,7 @@ function ReservationTypeform() {
       // Re-calculer les créneaux nécessaires pour l'état restauré
       if (pendingReservation.selectedCoiffeuse && pendingReservation.selectedDate) {
         const date = new Date(pendingReservation.selectedDate).toISOString().split('T')[0];
-        axios.get(API_URL + '/disponibilites/coiffeuse/' + pendingReservation.selectedCoiffeuse._id + '?date=' + date)
+        axios.get('/disponibilites/coiffeuse/' + pendingReservation.selectedCoiffeuse._id + '?date=' + date)
           .then(res => {
             setDayDisponibilites(Array.isArray(res.data) ? res.data : []);
           })
@@ -168,9 +164,9 @@ function ReservationTypeform() {
       const fetchDisponibilites = async () => {
         try {
           const date = new Date(selectedDate).toISOString().split('T')[0];
-          const res = await fetch(API_URL + '/disponibilites/coiffeuse/' + selectedCoiffeuse._id + '?date=' + date);
-          if (!res.ok) throw new Error('Erreur lors de la récupération des disponibilités');
-          const disponibilites = await res.json();
+          const res = await axios.get('/disponibilites/coiffeuse/' + selectedCoiffeuse._id + '?date=' + date);
+          if (res.status !== 200) throw new Error('Erreur lors de la récupération des disponibilités');
+          const disponibilites = res.data;
           setDayDisponibilites(Array.isArray(disponibilites) ? disponibilites : []);
         } catch (error) {
           setError(error.message);
@@ -258,7 +254,7 @@ function ReservationTypeform() {
       
       if (isModifying && originalReservation) {
         // Update existing reservation
-        const response = await axios.patch(`${API_URL}/reservations/${originalReservation._id}`, {
+        const response = await axios.patch(`/reservations/${originalReservation._id}`, {
           date: selectedDate,
           startTime: selectedSlot,
           serviceIds: selectedServices.map(s => s._id),
@@ -282,7 +278,7 @@ function ReservationTypeform() {
         }
       } else {
         // Create new reservation
-        const response = await axios.post(API_URL + '/reservations', {
+        const response = await axios.post('/reservations', {
           serviceIds: selectedServices.map(s => s._id),
           coiffeuseId: selectedCoiffeuse._id,
           date: selectedDate,
