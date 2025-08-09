@@ -34,7 +34,11 @@ import {
   List,
   ListItem,
   ListItemText,
-  Divider
+  Divider,
+  Fade,
+  Slide,
+  Grow,
+  Avatar
 } from '@mui/material';
 import {
   ContentCut,
@@ -51,7 +55,8 @@ import {
   AttachMoney,
   Phone,
   LocationOn,
-  Visibility
+  Visibility,
+  AdminPanelSettings
 } from '@mui/icons-material';
 import WeeklyCalendar from '../components/WeeklyCalendar';
 import axios from 'axios';
@@ -933,29 +938,48 @@ function DashboardAdmin() {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f8f4f0 0%, #e8ddd4 100%)',
+        background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 100%)',
         pt: { xs: 10, sm: 12 },
         pb: 4
       }}
     >
       <Container maxWidth="xl">
         {/* Header */}
+        <Slide direction="down" in timeout={800}>
         <Paper
-          elevation={3}
+            elevation={0}
           sx={{
             p: 4,
             mb: 4,
-            borderRadius: 3,
-            background: '#ffffff',
-            textAlign: 'center'
-          }}
-        >
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 246, 242, 0.95) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              textAlign: 'center',
+              boxShadow: '0px 8px 32px rgba(44, 44, 44, 0.08)'
+            }}
+          >
+            <Avatar
+              sx={{
+                width: 80,
+                height: 80,
+                mx: 'auto',
+                mb: 2,
+                background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                fontSize: '2rem',
+                fontWeight: 600,
+                boxShadow: '0px 4px 12px rgba(212, 185, 150, 0.3)'
+              }}
+            >
+              <AdminPanelSettings sx={{ fontSize: 40 }} />
+            </Avatar>
           <Typography
             variant="h3"
             sx={{
               fontWeight: 700,
-              color: '#2c2c2c',
+                color: '#2C2C2C',
               mb: 1,
+                letterSpacing: '-0.02em',
               fontSize: { xs: '2rem', sm: '2.5rem' }
             }}
           >
@@ -964,33 +988,52 @@ function DashboardAdmin() {
           <Typography
             variant="h6"
             sx={{
-              color: '#666666',
-              fontWeight: 400
+                color: '#6B6B6B',
+                fontWeight: 400,
+                fontSize: '1.1rem'
             }}
           >
             Gestion complète de votre salon
           </Typography>
         </Paper>
+        </Slide>
 
         {/* Navigation Tabs */}
-        <Paper elevation={2} sx={{ mb: 4, borderRadius: 3 }}>
+        <Grow in timeout={1000}>
+          <Paper
+            elevation={0}
+            sx={{
+              mb: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
           <Tabs
             value={tab}
             onChange={(e, newValue) => setTab(newValue)}
             centered
             sx={{
               '& .MuiTab-root': {
-                color: '#666666',
+                  color: '#6B6B6B',
                 fontWeight: 600,
                 textTransform: 'none',
                 fontSize: '1rem',
+                  minHeight: 72,
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&.Mui-selected': {
-                  color: '#2c2c2c'
+                    color: '#2C2C2C'
+                  },
+                  '&:hover': {
+                    backgroundColor: 'rgba(212, 185, 150, 0.1)'
                 }
               },
               '& .MuiTabs-indicator': {
                 backgroundColor: '#D4B996',
-                height: 3
+                  height: 3,
+                  borderRadius: '2px'
               }
             }}
           >
@@ -998,56 +1041,96 @@ function DashboardAdmin() {
               label="Services" 
               icon={<ContentCut />} 
               iconPosition="start"
-              sx={{ minHeight: 72 }}
             />
             <Tab 
               label="Coiffeuses" 
               icon={<Person />} 
               iconPosition="start"
-              sx={{ minHeight: 72 }}
             />
             <Tab 
               label="Disponibilités" 
               icon={<Schedule />} 
               iconPosition="start"
-              sx={{ minHeight: 72 }}
             />
             <Tab 
               label="Réservations" 
               icon={<CalendarMonth />} 
               iconPosition="start"
-              sx={{ minHeight: 72 }}
             />
             <Tab 
               label="Candidatures" 
               icon={<Work />} 
               iconPosition="start"
-              sx={{ minHeight: 72 }}
             />
           </Tabs>
         </Paper>
+        </Grow>
 
         {/* Services Tab */}
         <TabPanel value={tab} index={0}>
-          <Paper elevation={3} sx={{ p: 4, borderRadius: 3, background: '#ffffff' }}>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: '#2c2c2c', mb: 3, display: 'flex', alignItems: 'center' }}>
+          <Grow in timeout={1200}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 4,
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(212, 185, 150, 0.2)',
+                boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+              }}
+            >
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 3, display: 'flex', alignItems: 'center' }}>
               <ContentCut sx={{ mr: 1, color: '#D4B996' }} />
               Gestion des services
             </Typography>
 
             {serviceSuccess && (
-              <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setServiceSuccess('')}>
+                <Fade in timeout={300}>
+                  <Alert
+                    severity="success"
+                    sx={{
+                      mb: 3,
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                      color: '#2e7d32',
+                      border: '1px solid rgba(76, 175, 80, 0.2)'
+                    }}
+                    onClose={() => setServiceSuccess('')}
+                  >
                 {serviceSuccess}
               </Alert>
+                </Fade>
             )}
             {serviceError && (
-              <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setServiceError('')}>
+                <Fade in timeout={300}>
+                  <Alert
+                    severity="error"
+                    sx={{
+                      mb: 3,
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                      color: '#d32f2f',
+                      border: '1px solid rgba(244, 67, 54, 0.2)'
+                    }}
+                    onClose={() => setServiceError('')}
+                  >
                 {serviceError}
               </Alert>
+                </Fade>
             )}
 
             {/* Service Form */}
-            <Card elevation={1} sx={{ mb: 4, backgroundColor: '#f8f4f0' }}>
+              <Card
+                elevation={0}
+                sx={{
+                  mb: 4,
+                  borderRadius: '16px',
+                  background: 'rgba(248, 246, 242, 0.8)',
+                  border: '1px solid rgba(212, 185, 150, 0.3)',
+                  boxShadow: '0px 2px 8px rgba(44, 44, 44, 0.04)'
+                }}
+              >
               <CardContent>
                 <form onSubmit={handleServiceSubmit}>
                   <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -1060,6 +1143,22 @@ function DashboardAdmin() {
                         onChange={handleServiceChange}
                         required
                         size="small"
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '12px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              '& fieldset': {
+                                borderColor: 'rgba(212, 185, 150, 0.3)',
+                              },
+                              '&:hover fieldset': {
+                                borderColor: '#D4B996',
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#B8A08A',
+                                borderWidth: '2px'
+                              }
+                            }
+                          }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
@@ -1074,6 +1173,22 @@ function DashboardAdmin() {
                         multiline
                         rows={2}
                         helperText="Min. 10 caractères"
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '12px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              '& fieldset': {
+                                borderColor: 'rgba(212, 185, 150, 0.3)',
+                              },
+                              '&:hover fieldset': {
+                                borderColor: '#D4B996',
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#B8A08A',
+                                borderWidth: '2px'
+                              }
+                            }
+                          }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2}>
@@ -1086,8 +1201,22 @@ function DashboardAdmin() {
                         onChange={handleServiceChange}
                         required
                         size="small"
-                        helperText="Min. 15 minutes"
-                        inputProps={{ min: 15, max: 480 }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '12px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              '& fieldset': {
+                                borderColor: 'rgba(212, 185, 150, 0.3)',
+                              },
+                              '&:hover fieldset': {
+                                borderColor: '#D4B996',
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#B8A08A',
+                                borderWidth: '2px'
+                              }
+                            }
+                          }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2}>
@@ -1100,60 +1229,101 @@ function DashboardAdmin() {
                         onChange={handleServiceChange}
                         required
                         size="small"
-                        helperText="Prix en euros"
-                        inputProps={{ min: 0, max: 1000, step: 0.01 }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '12px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              '& fieldset': {
+                                borderColor: 'rgba(212, 185, 150, 0.3)',
+                              },
+                              '&:hover fieldset': {
+                                borderColor: '#D4B996',
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#B8A08A',
+                                borderWidth: '2px'
+                              }
+                            }
+                          }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2}>
-                      <FormControl fullWidth size="small" required>
-                        <InputLabel>Catégorie</InputLabel>
+                        <FormControl fullWidth size="small">
+                          <InputLabel>Categorie</InputLabel>
                         <Select
                           name="category"
                           value={serviceForm.category}
                           onChange={handleServiceChange}
-                          label="Catégorie"
-                        >
-                          {CATEGORIES.map(cat => (
-                            <MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>
+                            required
+                            sx={{
+                              borderRadius: '12px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: 'rgba(212, 185, 150, 0.3)',
+                              },
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#D4B996',
+                              },
+                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#B8A08A',
+                                borderWidth: '2px'
+                              }
+                            }}
+                          >
+                            {CATEGORIES.map((category) => (
+                              <MenuItem key={category.value} value={category.value}>
+                                {category.label}
+                              </MenuItem>
                           ))}
                         </Select>
                       </FormControl>
                     </Grid>
                   </Grid>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      startIcon={editServiceId ? <Save /> : <Add />}
-                      disabled={loading}
-                      sx={{
-                        bgcolor: '#D4B996',
-                        color: 'white',
-                        fontWeight: 600,
-                        '&:hover': { bgcolor: '#c4a985' },
-                        '&:disabled': { bgcolor: '#cccccc', color: '#888888' }
-                      }}
-                    >
-                      {editServiceId ? 'Modifier' : 'Ajouter'}
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                     {editServiceId && (
                       <Button
                         variant="outlined"
-                        startIcon={<Cancel />}
                         onClick={() => {
                           setEditServiceId(null);
                           setServiceForm({ name: '', description: '', duration: '', price: '', category: '' });
                         }}
                         sx={{
                           borderColor: '#D4B996',
-                          color: '#D4B996',
+                            color: '#2C2C2C',
                           fontWeight: 600,
-                          '&:hover': { borderColor: '#c4a985', backgroundColor: 'rgba(212, 185, 150, 0.1)' }
-                        }}
-                      >
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            '&:hover': {
+                              borderColor: '#B8A08A',
+                              backgroundColor: 'rgba(212, 185, 150, 0.08)',
+                            }
+                          }}
+                        >
+                          <Cancel sx={{ mr: 1 }} />
                         Annuler
                       </Button>
                     )}
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        sx={{
+                          background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                          color: '#2C2C2C',
+                          fontWeight: 600,
+                          borderRadius: '12px',
+                          textTransform: 'none',
+                          boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+                            transform: 'translateY(-2px) scale(1.02)',
+                            boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
+                          }
+                        }}
+                      >
+                        <Save sx={{ mr: 1 }} />
+                        {editServiceId ? 'Modifier' : 'Ajouter'}
+                      </Button>
                   </Box>
                 </form>
               </CardContent>
@@ -1231,6 +1401,7 @@ function DashboardAdmin() {
               </TableContainer>
             )}
           </Paper>
+        </Grow>
         </TabPanel>
 
         {/* Coiffeuses Tab */}

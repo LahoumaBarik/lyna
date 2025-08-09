@@ -38,7 +38,10 @@ import {
   Divider,
   IconButton,
   Tooltip,
-  LinearProgress
+  LinearProgress,
+  Slide,
+  Grow,
+  Fade
 } from '@mui/material';
 import {
   CheckCircle,
@@ -356,47 +359,76 @@ function ReservationTypeform() {
     switch (step) {
       case 0:
         return (
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
             <Box textAlign="center" sx={{ mb: 3 }}>
-              <Info sx={{ fontSize: 64, color: '#D4B996', mb: 2 }} />
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2c2c2c', mb: 2 }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  p: 2,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                  mb: 2
+                }}
+              >
+                <Info sx={{ fontSize: 48, color: '#2C2C2C' }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 2 }}>
                 Politique du salon
               </Typography>
             </Box>
             
-            <Card elevation={1} sx={{ mb: 3, borderLeft: '4px solid #D4B996' }}>
+            <Card
+              elevation={0}
+              sx={{
+                mb: 3,
+                borderRadius: '16px',
+                background: 'rgba(248, 246, 242, 0.8)',
+                border: '1px solid rgba(212, 185, 150, 0.3)',
+                boxShadow: '0px 2px 8px rgba(44, 44, 44, 0.04)'
+              }}
+            >
               <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2c2c2c' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2C2C2C' }}>
                   Politique d'annulation de rendez-vous
                 </Typography>
-                <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.6 }}>
+                <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.6, color: '#6B6B6B' }}>
                   Nous comprenons que des imprévus peuvent survenir, mais afin de garantir un service de qualité pour tous nos clients, nous vous demandons de bien vouloir respecter la politique d'annulation suivante :
                 </Typography>
                 <List>
-                  <ListItem>
+                  <ListItem sx={{ borderRadius: '8px', mb: 1, background: 'rgba(255, 255, 255, 0.5)' }}>
                     <ListItemIcon>
                       <CheckCircle sx={{ color: '#D4B996' }} />
                     </ListItemIcon>
                     <ListItemText 
-                      primary="Annulation ou modification"
+                      primary={<Typography sx={{ fontWeight: 600, color: '#2C2C2C' }}>Annulation ou modification</Typography>}
                       secondary="Pour toute annulation ou modification de rendez-vous, nous demandons un préavis minimum de 48 heures."
                     />
                   </ListItem>
-                  <ListItem>
+                  <ListItem sx={{ borderRadius: '8px', mb: 1, background: 'rgba(255, 255, 255, 0.5)' }}>
                     <ListItemIcon>
                       <CheckCircle sx={{ color: '#D4B996' }} />
                     </ListItemIcon>
                     <ListItemText 
-                      primary="Retards"
+                      primary={<Typography sx={{ fontWeight: 600, color: '#2C2C2C' }}>Retards</Typography>}
                       secondary="En cas de retard, nous ferons de notre mieux pour vous recevoir, mais votre rendez-vous pourrait être écourté."
                     />
                   </ListItem>
-                  <ListItem>
+                  <ListItem sx={{ borderRadius: '8px', mb: 1, background: 'rgba(255, 255, 255, 0.5)' }}>
                     <ListItemIcon>
                       <CheckCircle sx={{ color: '#D4B996' }} />
                     </ListItemIcon>
                     <ListItemText 
-                      primary="Respect"
+                      primary={<Typography sx={{ fontWeight: 600, color: '#2C2C2C' }}>Respect</Typography>}
                       secondary="Merci de respecter les horaires et de prévenir en cas d'empêchement."
                     />
                   </ListItem>
@@ -408,18 +440,56 @@ function ReservationTypeform() {
 
       case 1:
         return (
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
             <Box textAlign="center" sx={{ mb: 3 }}>
-              <ContentCut sx={{ fontSize: 64, color: '#D4B996', mb: 2 }} />
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2c2c2c' }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  p: 2,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                  mb: 2
+                }}
+              >
+                <ContentCut sx={{ fontSize: 48, color: '#2C2C2C' }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
                 Sélectionnez vos services
               </Typography>
             </Box>
 
             {categories.map(category => (
-              <Accordion key={category} sx={{ mb: 2, borderRadius: 2, '&:before': { display: 'none' } }}>
-                <AccordionSummary expandIcon={<ExpandMore />} sx={{ backgroundColor: '#f8f4f0' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c' }}>
+              <Accordion
+                key={category}
+                sx={{
+                  mb: 2,
+                  borderRadius: '12px',
+                  background: 'rgba(248, 246, 242, 0.8)',
+                  border: '1px solid rgba(212, 185, 150, 0.3)',
+                  '&:before': { display: 'none' },
+                  '&:hover': {
+                    background: 'rgba(248, 246, 242, 0.9)'
+                  }
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ExpandMore sx={{ color: '#D4B996' }} />}
+                  sx={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                    borderRadius: '12px'
+                  }}
+                >
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
                     {category}
                   </Typography>
                 </AccordionSummary>
@@ -428,19 +498,26 @@ function ReservationTypeform() {
                     {groupedServices[category].map(service => (
                       <Card 
                         key={service._id}
-                        elevation={selectedServices.find(s => s._id === service._id) ? 3 : 1}
+                        elevation={0}
                         sx={{ 
                           mb: 2, 
                           cursor: 'pointer',
-                          border: selectedServices.find(s => s._id === service._id) ? '2px solid #D4B996' : '1px solid #e0e0e0',
-                          '&:hover': { transform: 'translateY(-2px)', boxShadow: 3 }
+                          borderRadius: '12px',
+                          border: selectedServices.find(s => s._id === service._id) ? '2px solid #D4B996' : '1px solid rgba(212, 185, 150, 0.3)',
+                          background: selectedServices.find(s => s._id === service._id) ? 'rgba(212, 185, 150, 0.1)' : 'rgba(255, 255, 255, 0.8)',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0px 4px 12px rgba(44, 44, 44, 0.1)',
+                            border: '2px solid #D4B996'
+                          }
                         }}
                         onClick={() => handleServiceSelect(service)}
                       >
                         <CardContent>
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Box>
-                              <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
                                 {service.name}
                               </Typography>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
@@ -448,26 +525,24 @@ function ReservationTypeform() {
                                   icon={<Schedule />} 
                                   label={service.duration + ' min'} 
                                   size="small" 
-                                  sx={{ backgroundColor: '#f0f0f0' }}
+                                  sx={{
+                                    backgroundColor: 'rgba(212, 185, 150, 0.2)',
+                                    color: '#2C2C2C',
+                                    fontWeight: 500
+                                  }}
                                 />
                                 <Chip 
                                   icon={<AttachMoney />} 
-                                  label={service.price + ' '} 
+                                  label={service.price + ' €'} 
                                   size="small" 
-                                  color="primary"
-                                  sx={{ backgroundColor: '#D4B996', color: 'white' }}
+                                  sx={{
+                                    backgroundColor: '#D4B996',
+                                    color: '#2C2C2C',
+                                    fontWeight: 600
+                                  }}
                                 />
                               </Box>
                             </Box>
-                            <FormControlLabel
-                              control={
-                                <Radio 
-                                  checked={!!selectedServices.find(s => s._id === service._id)}
-                                  sx={{ '&.Mui-checked': { color: '#D4B996' } }}
-                                />
-                              }
-                              label=""
-                            />
                           </Box>
                         </CardContent>
                       </Card>
@@ -481,10 +556,30 @@ function ReservationTypeform() {
 
       case 2:
         return (
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
             <Box textAlign="center" sx={{ mb: 3 }}>
-              <Person sx={{ fontSize: 64, color: '#D4B996', mb: 2 }} />
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2c2c2c' }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  p: 2,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                  mb: 2
+                }}
+              >
+                <Person sx={{ fontSize: 48, color: '#2C2C2C' }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
                 Choisissez votre coiffeuse
               </Typography>
             </Box>
@@ -493,12 +588,18 @@ function ReservationTypeform() {
               {coiffeuses.map((coiffeuse) => (
                 <Grid item xs={12} sm={6} md={4} key={coiffeuse._id}>
                   <Card 
-                    elevation={selectedCoiffeuse?._id === coiffeuse._id ? 3 : 1}
+                    elevation={0}
                     sx={{ 
                       cursor: 'pointer',
-                      border: selectedCoiffeuse?._id === coiffeuse._id ? '2px solid #D4B996' : '1px solid #e0e0e0',
-                      transition: 'all 0.3s ease',
-                      '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 }
+                      borderRadius: '16px',
+                      border: selectedCoiffeuse?._id === coiffeuse._id ? '2px solid #D4B996' : '1px solid rgba(212, 185, 150, 0.3)',
+                      background: selectedCoiffeuse?._id === coiffeuse._id ? 'rgba(212, 185, 150, 0.1)' : 'rgba(255, 255, 255, 0.8)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0px 8px 24px rgba(44, 44, 44, 0.12)',
+                        border: '2px solid #D4B996'
+                      }
                     }}
                     onClick={() => setSelectedCoiffeuse(coiffeuse)}
                   >
@@ -509,16 +610,18 @@ function ReservationTypeform() {
                           height: 80,
                           mx: 'auto',
                           mb: 2,
-                          bgcolor: '#D4B996',
-                          fontSize: '2rem'
+                          background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                          fontSize: '2rem',
+                          fontWeight: 600,
+                          boxShadow: '0px 4px 12px rgba(212, 185, 150, 0.3)'
                         }}
                       >
                         {coiffeuse.firstName?.charAt(0)}{coiffeuse.lastName?.charAt(0)}
                       </Avatar>
-                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
                         {coiffeuse.firstName} {coiffeuse.lastName}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#666666', mt: 1 }}>
+                      <Typography variant="body2" sx={{ color: '#6B6B6B', mt: 1, fontWeight: 500 }}>
                         {coiffeuse.stylistInfo?.level || 'Styliste'}
                       </Typography>
                     </CardContent>
@@ -531,10 +634,30 @@ function ReservationTypeform() {
 
       case 3:
         return (
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
             <Box textAlign="center" sx={{ mb: 3 }}>
-              <CalendarToday sx={{ fontSize: 64, color: '#D4B996', mb: 2 }} />
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2c2c2c' }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  p: 2,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                  mb: 2
+                }}
+              >
+                <CalendarToday sx={{ fontSize: 48, color: '#2C2C2C' }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
                 Choisissez une date
               </Typography>
             </Box>
@@ -550,8 +673,17 @@ function ReservationTypeform() {
                 InputLabelProps={{ shrink: true }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    '& fieldset': {
+                      borderColor: 'rgba(212, 185, 150, 0.3)',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#D4B996',
+                    },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#D4B996'
+                      borderColor: '#B8A08A',
+                      borderWidth: '2px'
                     }
                   }
                 }}
@@ -562,14 +694,34 @@ function ReservationTypeform() {
 
       case 4:
         return (
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
             <Box textAlign="center" sx={{ mb: 3 }}>
-              <AccessTime sx={{ fontSize: 64, color: '#D4B996', mb: 2 }} />
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2c2c2c' }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  p: 2,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                  mb: 2
+                }}
+              >
+                <AccessTime sx={{ fontSize: 48, color: '#2C2C2C' }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
                 Choisissez un créneau
               </Typography>
               {selectedDate && (
-                <Typography variant="body1" sx={{ color: '#666666', mt: 1 }}>
+                <Typography variant="body1" sx={{ color: '#6B6B6B', mt: 1, fontWeight: 500 }}>
                   {new Date(selectedDate + 'T00:00:00').toLocaleDateString('fr-FR', { 
                     weekday: 'long', 
                     day: 'numeric', 
@@ -589,11 +741,18 @@ function ReservationTypeform() {
                       onClick={() => setSelectedSlot(slot)}
                       sx={{
                         py: 1.5,
+                        borderRadius: '12px',
                         borderColor: '#D4B996',
-                        color: selectedSlot === slot ? 'white' : '#D4B996',
-                        backgroundColor: selectedSlot === slot ? '#D4B996' : 'transparent',
+                        color: selectedSlot === slot ? '#2C2C2C' : '#D4B996',
+                        backgroundColor: selectedSlot === slot ? 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)' : 'transparent',
+                        background: selectedSlot === slot ? 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)' : 'transparent',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         '&:hover': {
-                          backgroundColor: selectedSlot === slot ? '#c4a985' : 'rgba(212, 185, 150, 0.1)'
+                          backgroundColor: selectedSlot === slot ? 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)' : 'rgba(212, 185, 150, 0.1)',
+                          background: selectedSlot === slot ? 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)' : 'rgba(212, 185, 150, 0.1)',
+                          transform: 'translateY(-2px)'
                         }
                       }}
                     >
@@ -604,11 +763,8 @@ function ReservationTypeform() {
               </Grid>
             ) : (
               <Box textAlign="center" sx={{ py: 4 }}>
-                <Typography variant="body1" sx={{ color: '#666666' }}>
-                  Aucun créneau disponible pour cette date.
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#999999', mt: 1 }}>
-                  Veuillez choisir une autre date.
+                <Typography variant="body1" sx={{ color: '#6B6B6B' }}>
+                  {selectedDate ? 'Aucun créneau disponible pour cette date' : 'Veuillez sélectionner une date'}
                 </Typography>
               </Box>
             )}
@@ -617,198 +773,223 @@ function ReservationTypeform() {
 
       case 5:
         return (
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
             <Box textAlign="center" sx={{ mb: 3 }}>
-              <Payment sx={{ fontSize: 64, color: '#D4B996', mb: 2 }} />
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2c2c2c' }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  p: 2,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                  mb: 2
+                }}
+              >
+                <Payment sx={{ fontSize: 48, color: '#2C2C2C' }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
                 Paiement
               </Typography>
             </Box>
 
             {selectedServices.length > 0 && selectedCoiffeuse && selectedDate && selectedSlot ? (
               <>
-                <Card elevation={1} sx={{ mb: 3, backgroundColor: '#f8f4f0' }}>
+                <Card
+                  elevation={0}
+                  sx={{
+                    mb: 3,
+                    borderRadius: '16px',
+                    background: 'rgba(248, 246, 242, 0.8)',
+                    border: '1px solid rgba(212, 185, 150, 0.3)',
+                    boxShadow: '0px 2px 8px rgba(44, 44, 44, 0.04)'
+                  }}
+                >
                   <CardContent>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2c2c2c' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2C2C2C' }}>
                       Récapitulatif de votre réservation
                     </Typography>
-                    <Divider sx={{ mb: 2 }} />
+                    <Divider sx={{ mb: 2, borderColor: 'rgba(212, 185, 150, 0.3)' }} />
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="body1" sx={{ mb: 1 }}>
-                          <strong>Service:</strong> {selectedServices.map(s => s.name).join(', ')}
+                        <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                          <strong style={{ color: '#2C2C2C' }}>Service:</strong> {selectedServices.map(s => s.name).join(', ')}
                         </Typography>
-                        <Typography variant="body1" sx={{ mb: 1 }}>
-                          <strong>Coiffeuse:</strong> {selectedCoiffeuse.firstName} {selectedCoiffeuse.lastName}
+                        <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                          <strong style={{ color: '#2C2C2C' }}>Coiffeuse:</strong> {selectedCoiffeuse.firstName} {selectedCoiffeuse.lastName}
                         </Typography>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="body1" sx={{ mb: 1 }}>
-                          <strong>Date:</strong> {new Date(selectedDate).toLocaleDateString('fr-FR')}
+                        <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                          <strong style={{ color: '#2C2C2C' }}>Date:</strong> {new Date(selectedDate + 'T00:00:00').toLocaleDateString('fr-FR')}
                         </Typography>
-                        <Typography variant="body1" sx={{ mb: 1 }}>
-                          <strong>Heure:</strong> {selectedSlot}
+                        <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                          <strong style={{ color: '#2C2C2C' }}>Heure:</strong> {selectedSlot}
                         </Typography>
                       </Grid>
                     </Grid>
-                    <Divider sx={{ my: 2 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c', textAlign: 'center' }}>
-                      Total: {selectedServices.reduce((total, s) => total + s.price, 0)} €
-                    </Typography>
+                    <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(212, 185, 150, 0.3)' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
+                        Total: {selectedServices.reduce((sum, service) => sum + service.price, 0)} €
+                      </Typography>
+                    </Box>
                   </CardContent>
                 </Card>
 
                 {paymentError && (
-                  <Alert severity="error" sx={{ mb: 3 }}>
+                  <Alert severity="error" sx={{ mb: 3, borderRadius: '12px' }}>
                     {paymentError}
                   </Alert>
                 )}
 
-                <Typography variant="h6" sx={{ mb: 3, textAlign: 'center', fontWeight: 600 }}>
-                  Choisissez votre mode de paiement
-                </Typography>
-
-                <Grid container spacing={3}>
-                  {/* Pay at Salon Option */}
-                  <Grid item xs={12} md={6}>
-                    <Card 
-                      elevation={2} 
-                      sx={{ 
-                        p: 3, 
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
-                        border: '2px solid #D4B996'
-                      }}
-                      onClick={() => handlePaymentSuccess({ paymentMethod: 'cash' })}
-                    >
-                      <Box sx={{ mb: 2 }}>
-                        <Store sx={{ fontSize: 48, color: '#D4B996' }} />
-                      </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                        Payer au salon
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-                        Réglez votre service directement au salon en espèces ou par carte
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        disabled={loading}
-                        sx={{
-                          backgroundColor: '#D4B996',
-                          color: 'white',
-                          '&:hover': { backgroundColor: '#c4a986' },
-                          width: '100%'
+                {!paymentSuccess ? (
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="body1" sx={{ mb: 2, color: '#6B6B6B' }}>
+                      Cliquez sur le bouton ci-dessous pour procéder au paiement
+                    </Typography>
+                    <PayPalScriptProvider options={{ "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID }}>
+                      <PayPalButtons
+                        createOrder={(data, actions) => {
+                          return actions.order.create({
+                            purchase_units: [{
+                              amount: {
+                                value: selectedServices.reduce((sum, service) => sum + service.price, 0).toString()
+                              }
+                            }]
+                          });
                         }}
-                      >
-                        {loading ? <CircularProgress size={24} /> : 'Réserver - Payer au salon'}
-                      </Button>
-                    </Card>
-                  </Grid>
-
-                  {/* PayPal Option - Re-enabled */}
-                  <Grid item xs={12} md={6}>
-                    <Card 
-                      elevation={1} 
-                      sx={{ 
-                        p: 3, 
-                        textAlign: 'center',
-                        border: '2px solid #0070ba',
-                        '&:hover': {
-                          borderColor: '#005ea6',
-                          boxShadow: 2
-                        }
-                      }}
-                    >
-                      <Box sx={{ mb: 2 }}>
-                        <CreditCard sx={{ fontSize: 48, color: '#0070ba' }} />
-                      </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#2c2c2c' }}>
-                        Paiement en ligne
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#666666', mb: 2 }}>
-                        PayPal / Carte bancaire
-                      </Typography>
-                      
-                      <PayPalScriptProvider options={paypalOptions}>
-                        <PayPalButtons
-                          style={{ layout: "vertical" }}
-                          createOrder={(data, actions) => {
-                            return actions.order.create({
-                              purchase_units: [
-                                {
-                                  amount: {
-                                    value: selectedServices.reduce((total, s) => total + s.price, 0).toFixed(2),
-                                    currency_code: "USD"
-                                  },
-                                  description: `Réservation salon - ${selectedServices.map(s => s.name).join(', ')}`
-                                }
-                              ]
-                            });
-                          }}
-                          onApprove={async (data, actions) => {
-                            const order = await actions.order.capture();
-                            await handlePaymentSuccess({
-                              paypalOrderId: order.id,
-                              paypalPaymentId: order.purchase_units[0].payments.captures[0].id,
-                              paymentMethod: 'paypal'
-                            });
-                          }}
-                          onError={(err) => {
-                            console.error('PayPal Error:', err);
-                            setPaymentError('Erreur lors du paiement PayPal');
-                          }}
-                        />
-                      </PayPalScriptProvider>
-                      
-                      <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#666666' }}>
-                        Paiement sécurisé par PayPal
-                      </Typography>
-                    </Card>
-                  </Grid>
-                </Grid>
-
-                <Alert severity="info" sx={{ mt: 3 }}>
-                  💡 En choisissant "Payer au salon", votre réservation sera confirmée et vous pourrez régler sur place.
-                </Alert>
+                        onApprove={(data, actions) => {
+                          return actions.order.capture().then((details) => {
+                            handlePaymentSuccess(details);
+                          });
+                        }}
+                        onError={(err) => {
+                          setPaymentError('Erreur lors du paiement. Veuillez réessayer.');
+                        }}
+                        style={{ layout: "vertical" }}
+                      />
+                    </PayPalScriptProvider>
+                  </Box>
+                ) : (
+                  <Box sx={{ textAlign: 'center' }}>
+                    <CheckCircle sx={{ fontSize: 64, color: '#4caf50', mb: 2 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 2 }}>
+                      Paiement réussi !
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#6B6B6B' }}>
+                      Votre réservation a été confirmée.
+                    </Typography>
+                  </Box>
+                )}
               </>
             ) : (
-              <Alert severity="error">
-                Impossible de charger le récapitulatif. Veuillez réessayer.
-              </Alert>
+              <Box textAlign="center" sx={{ py: 4 }}>
+                <Typography variant="body1" sx={{ color: '#6B6B6B' }}>
+                  Veuillez compléter toutes les étapes précédentes.
+                </Typography>
+              </Box>
             )}
           </Paper>
         );
 
       case 6:
         return (
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
-            <CheckCircle sx={{ fontSize: 80, color: '#4caf50', mb: 3 }} />
-            <Typography variant="h4" sx={{ fontWeight: 600, color: '#2c2c2c', mb: 2 }}>
-              Réservation confirmée !
-            </Typography>
-            <Typography variant="body1" sx={{ color: '#666666', mb: 1 }}>
-              Votre paiement a été effectué avec succès.
-            </Typography>
-            <Typography variant="body1" sx={{ color: '#666666', mb: 4 }}>
-              Un email de confirmation vous sera envoyé prochainement.
-            </Typography>
-            
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => navigate('/dashboard-client')}
-              sx={{
-                bgcolor: '#2c2c2c',
-                color: '#ffffff',
-                py: 1.5,
-                px: 4,
-                borderRadius: 2,
-                '&:hover': { bgcolor: '#1a1a1a' }
-              }}
-            >
-              Aller à mon tableau de bord
-            </Button>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
+            <Box textAlign="center" sx={{ mb: 3 }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  p: 2,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)',
+                  mb: 2
+                }}
+              >
+                <CheckCircle sx={{ fontSize: 48, color: '#ffffff' }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 2 }}>
+                Réservation confirmée !
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
+                Votre rendez-vous a été enregistré avec succès.
+              </Typography>
+            </Box>
+
+            {reservationId && (
+              <Card
+                elevation={0}
+                sx={{
+                  mb: 3,
+                  borderRadius: '16px',
+                  background: 'rgba(248, 246, 242, 0.8)',
+                  border: '1px solid rgba(212, 185, 150, 0.3)',
+                  boxShadow: '0px 2px 8px rgba(44, 44, 44, 0.04)'
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2C2C2C' }}>
+                    Détails de votre réservation
+                  </Typography>
+                  <Divider sx={{ mb: 2, borderColor: 'rgba(212, 185, 150, 0.3)' }} />
+                  <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                    <strong style={{ color: '#2C2C2C' }}>Numéro de réservation:</strong> {reservationId}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                    <strong style={{ color: '#2C2C2C' }}>Service:</strong> {selectedServices.map(s => s.name).join(', ')}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                    <strong style={{ color: '#2C2C2C' }}>Coiffeuse:</strong> {selectedCoiffeuse.firstName} {selectedCoiffeuse.lastName}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                    <strong style={{ color: '#2C2C2C' }}>Date:</strong> {new Date(selectedDate + 'T00:00:00').toLocaleDateString('fr-FR')}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                    <strong style={{ color: '#2C2C2C' }}>Heure:</strong> {selectedSlot}
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+
+            <Box sx={{ textAlign: 'center' }}>
+              <Button
+                variant="contained"
+                onClick={() => navigate('/dashboard-client')}
+                sx={{
+                  background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                  color: '#2C2C2C',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+                    transform: 'translateY(-2px) scale(1.02)',
+                    boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
+                  }
+                }}
+              >
+                Voir mes réservations
+              </Button>
+            </Box>
           </Paper>
         );
 
@@ -821,119 +1002,185 @@ function ReservationTypeform() {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f8f4f0 0%, #e8ddd4 100%)',
+        background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 100%)',
         pt: { xs: 10, sm: 12 },
         pb: 4
       }}
     >
       <Container maxWidth="md">
         {/* Header */}
-        <Paper
-          elevation={3}
-          sx={{
-            p: 4,
-            mb: 4,
-            borderRadius: 3,
-            background: '#ffffff',
-            textAlign: 'center'
-          }}
-        >
-          <Typography
-            variant="h3"
+        <Slide direction="down" in timeout={800}>
+          <Paper
+            elevation={0}
             sx={{
-              fontWeight: 700,
-              color: '#2c2c2c',
-              mb: 1,
-              fontSize: { xs: '2rem', sm: '2.5rem' }
+              p: 4,
+              mb: 4,
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 246, 242, 0.95) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              textAlign: 'center',
+              boxShadow: '0px 8px 32px rgba(44, 44, 44, 0.08)'
             }}
           >
-            {isModifying ? 'Modifier ma réservation' : 'Réservation'}
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{
-              color: '#666666',
-              fontWeight: 400
-            }}
-          >
-            {isModifying 
-              ? 'Modifiez la date et l\'heure de votre rendez-vous' 
-              : 'Prenez rendez-vous en quelques étapes simples'
-            }
-          </Typography>
-        </Paper>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                color: '#2C2C2C',
+                mb: 1,
+                letterSpacing: '-0.02em',
+                fontSize: { xs: '2rem', sm: '2.5rem' }
+              }}
+            >
+              {isModifying ? 'Modifier ma réservation' : 'Réservation'}
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{
+                color: '#6B6B6B',
+                fontWeight: 400,
+                fontSize: '1.1rem'
+              }}
+            >
+              {isModifying 
+                ? 'Modifiez la date et l\'heure de votre rendez-vous' 
+                : 'Prenez rendez-vous en quelques étapes simples'
+              }
+            </Typography>
+          </Paper>
+        </Slide>
 
         {/* Progress */}
-        <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" sx={{ color: '#666666', textAlign: 'center' }}>
-              Étape {activeStep + 1} sur {steps.length}
+        <Grow in timeout={1000}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              mb: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ color: '#6B6B6B', textAlign: 'center', fontWeight: 500 }}>
+                Étape {activeStep + 1} sur {steps.length}
+              </Typography>
+              <LinearProgress 
+                variant="determinate" 
+                value={(activeStep + 1) / steps.length * 100} 
+                sx={{ 
+                  mt: 1,
+                  height: 8, 
+                  borderRadius: 4,
+                  backgroundColor: 'rgba(212, 185, 150, 0.2)',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: '#D4B996',
+                    borderRadius: 4
+                  }
+                }} 
+              />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C', textAlign: 'center' }}>
+              {steps[activeStep]}
             </Typography>
-            <LinearProgress 
-              variant="determinate" 
-              value={(activeStep + 1) / steps.length * 100} 
-              sx={{ 
-                mt: 1,
-                height: 8, 
-                borderRadius: 4,
-                backgroundColor: '#f0f0f0',
-                '& .MuiLinearProgress-bar': {
-                  backgroundColor: '#D4B996',
-                  borderRadius: 4
-                }
-              }} 
-            />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c', textAlign: 'center' }}>
-            {steps[activeStep]}
-          </Typography>
-        </Paper>
+          </Paper>
+        </Grow>
 
         {/* Success/Error Alerts */}
         {success && (
-          <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
-            {success}
-          </Alert>
+          <Fade in timeout={300}>
+            <Alert
+              severity="success"
+              sx={{
+                mb: 3,
+                borderRadius: '12px',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                color: '#2e7d32',
+                border: '1px solid rgba(76, 175, 80, 0.2)'
+              }}
+              onClose={() => setSuccess('')}
+            >
+              {success}
+            </Alert>
+          </Fade>
         )}
         {error && (
-          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-            {error}
-          </Alert>
+          <Fade in timeout={300}>
+            <Alert
+              severity="error"
+              sx={{
+                mb: 3,
+                borderRadius: '12px',
+                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                color: '#d32f2f',
+                border: '1px solid rgba(244, 67, 54, 0.2)'
+              }}
+              onClose={() => setError('')}
+            >
+              {error}
+            </Alert>
+          </Fade>
         )}
 
         {/* Step Content */}
-        {renderStepContent(activeStep)}
+        <Grow in timeout={1200}>
+          {renderStepContent(activeStep)}
+        </Grow>
 
         {/* Navigation Buttons */}
         {activeStep !== 6 && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-            <Button
-              onClick={handleBack}
-              disabled={activeStep === 0}
-              startIcon={<ArrowBack />}
-              sx={{ 
-                color: '#666666',
-                '&:disabled': { color: '#cccccc' }
-              }}
-            >
-              Retour
-            </Button>
-            
-            <Button
-              variant="contained"
-              onClick={activeStep === 4 ? handleProceedToPayment : handleNext}
-              disabled={!canProceed()}
-              endIcon={<ArrowForward />}
-              sx={{
-                bgcolor: '#2c2c2c',
-                color: '#ffffff',
-                '&:hover': { bgcolor: '#1a1a1a' },
-                '&:disabled': { bgcolor: '#cccccc' }
-              }}
-            >
-              {activeStep === 4 ? 'Procéder au paiement' : 'Suivant'}
-            </Button>
-          </Box>
+          <Grow in timeout={1400}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+              <Button
+                onClick={handleBack}
+                disabled={activeStep === 0}
+                startIcon={<ArrowBack />}
+                sx={{ 
+                  color: '#6B6B6B',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  '&:disabled': { color: '#cccccc' },
+                  '&:hover': {
+                    backgroundColor: 'rgba(212, 185, 150, 0.1)'
+                  }
+                }}
+              >
+                Retour
+              </Button>
+              
+              <Button
+                variant="contained"
+                onClick={activeStep === 4 ? handleProceedToPayment : handleNext}
+                disabled={!canProceed()}
+                endIcon={<ArrowForward />}
+                sx={{
+                  background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                  color: '#2C2C2C',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+                    transform: 'translateY(-2px) scale(1.02)',
+                    boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
+                  },
+                  '&:disabled': {
+                    background: 'rgba(212, 185, 150, 0.3)',
+                    color: 'rgba(44, 44, 44, 0.5)'
+                  }
+                }}
+              >
+                {activeStep === 4 ? 'Procéder au paiement' : 'Suivant'}
+              </Button>
+            </Box>
+          </Grow>
         )}
 
         {/* Login Modal */}
@@ -942,17 +1189,36 @@ function ReservationTypeform() {
           onClose={() => setShowLoginModal(false)}
           maxWidth="sm"
           fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 8px 32px rgba(44, 44, 44, 0.15)'
+            }
+          }}
         >
           <DialogTitle>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography variant="h6">Connexion requise</Typography>
-              <IconButton onClick={() => setShowLoginModal(false)}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
+                Connexion requise
+              </Typography>
+              <IconButton
+                onClick={() => setShowLoginModal(false)}
+                sx={{
+                  color: '#D4B996',
+                  '&:hover': {
+                    backgroundColor: 'rgba(212, 185, 150, 0.1)'
+                  }
+                }}
+              >
                 <Close />
               </IconButton>
             </Box>
           </DialogTitle>
           <DialogContent>
-            <Typography variant="body1" sx={{ mb: 3 }}>
+            <Typography variant="body1" sx={{ mb: 3, color: '#6B6B6B' }}>
               Pour continuer, veuillez vous connecter ou créer un compte.
             </Typography>
             <LoginModal onAuthSuccess={handleLoginSuccess} />

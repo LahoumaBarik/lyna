@@ -24,7 +24,10 @@ import {
   Alert,
   CircularProgress,
   Divider,
-  FormHelperText
+  FormHelperText,
+  Fade,
+  Slide,
+  Grow
 } from '@mui/material';
 import {
   Person,
@@ -100,57 +103,47 @@ function StylistApplication() {
         tiktok: '',
         website: ''
       },
-      workingHours: {
-        monday: { start: '09:00', end: '17:00', isWorking: true },
-        tuesday: { start: '09:00', end: '17:00', isWorking: true },
-        wednesday: { start: '09:00', end: '17:00', isWorking: true },
-        thursday: { start: '09:00', end: '17:00', isWorking: true },
-        friday: { start: '09:00', end: '17:00', isWorking: true },
-        saturday: { start: '09:00', end: '17:00', isWorking: true },
-        sunday: { start: '09:00', end: '17:00', isWorking: false }
+      availability: {
+        schedule: '',
+        hoursPerWeek: '',
+        preferredDays: [],
+        notes: ''
       },
-      commission: 50
-    },
-    availability: {
-      immediate: false,
-      startDate: '',
-      preferredSchedule: 'full_time' // Set default value
-    },
-    motivation: ''
+      motivation: {
+        whyJoin: '',
+        goals: '',
+        expectations: ''
+      }
+    }
   });
 
-  // Check for existing application
   useEffect(() => {
-    const checkExistingApplication = async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        const response = await axios.get('/stylist-applications/my-application', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setExistingApplication(response.data.application);
-      } catch (error) {
-        if (error.response?.status !== 404) {
-          console.error('Error checking application:', error);
-        }
-      }
-    };
-
     if (user) {
       checkExistingApplication();
     }
   }, [user]);
 
-  const handleNext = () => {
-    // Validate motivation field before proceeding to review step
-    if (activeStep === 4 && formData.motivation.length < 50) {
-      setError('Please write at least 50 characters in the motivation field before proceeding.');
-      return;
+  const checkExistingApplication = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/stylist-applications/check`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.data.success && response.data.application) {
+        setExistingApplication(response.data.application);
+      }
+    } catch (error) {
+      console.error('Error checking existing application:', error);
     }
-    setActiveStep((prevStep) => prevStep + 1);
+  };
+
+  const handleNext = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
 
   const handleBack = () => {
-    setActiveStep((prevStep) => prevStep - 1);
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
   const handleInputChange = (section, field, value) => {
@@ -177,15 +170,12 @@ function StylistApplication() {
   };
 
   const handleSpecializationToggle = (spec) => {
-    setFormData(prev => ({
-      ...prev,
-      stylistInfo: {
-        ...prev.stylistInfo,
-        specializations: prev.stylistInfo.specializations.includes(spec)
-          ? prev.stylistInfo.specializations.filter(s => s !== spec)
-          : [...prev.stylistInfo.specializations, spec]
-      }
-    }));
+    const currentSpecs = formData.stylistInfo.specializations || [];
+    const updatedSpecs = currentSpecs.includes(spec)
+      ? currentSpecs.filter(s => s !== spec)
+      : [...currentSpecs, spec];
+    
+    handleInputChange('stylistInfo', 'specializations', updatedSpecs);
   };
 
   const handleSubmit = async () => {
@@ -193,43 +183,28 @@ function StylistApplication() {
     setError('');
     setSuccess('');
 
-    // Validate required fields before submission
-    if (!formData.availability.preferredSchedule) {
-      setError('Please select a preferred schedule before submitting.');
-      setLoading(false);
-      return;
-    }
-
-    // Ensure required fields are set
-    const submissionData = {
-      ...formData,
-      availability: {
-        ...formData.availability,
-        preferredSchedule: formData.availability.preferredSchedule || 'full_time'
-      }
-    };
-
-    console.log('Submitting application data:', submissionData);
-
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.post('/stylist-applications', submissionData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/stylist-applications`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
 
-      setSuccess('Application submitted successfully! We will review your application and get back to you soon.');
-      setTimeout(() => {
-        navigate('/dashboard-client');
-      }, 3000);
-    } catch (error) {
-      console.error('Submission error:', error.response?.data);
-      if (error.response?.data?.code === 'VALIDATION_ERROR') {
-        const validationErrors = error.response.data.details;
-        const errorMessages = validationErrors.map(err => `${err.path}: ${err.msg}`).join(', ');
-        setError(`Validation errors: ${errorMessages}`);
+      if (response.data.success) {
+        setSuccess('Application submitted successfully! We will review it and get back to you soon.');
+        setTimeout(() => {
+          navigate('/dashboard-client');
+        }, 2000);
       } else {
-        setError(error.response?.data?.message || 'Failed to submit application');
+        setError(response.data.message || 'Failed to submit application');
       }
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      setError(error.response?.data?.message || 'Failed to submit application');
     } finally {
       setLoading(false);
     }
@@ -239,27 +214,66 @@ function StylistApplication() {
     switch (step) {
       case 0:
         return (
-          <Box>
-            <Typography variant="h6" gutterBottom>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 3 }}>
               Personal Information
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Business Name (Optional)"
+                  label="Business Name"
                   value={formData.stylistInfo.businessName}
                   onChange={(e) => handleInputChange('stylistInfo', 'businessName', e.target.value)}
-                  helperText="Your professional business name if you have one"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                  <InputLabel>Professional Level</InputLabel>
+                  <InputLabel sx={{ color: '#6B6B6B' }}>Level</InputLabel>
                   <Select
                     value={formData.stylistInfo.level}
                     onChange={(e) => handleInputChange('stylistInfo', 'level', e.target.value)}
-                    label="Professional Level"
+                    label="Level"
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }}
                   >
                     {levels.map(level => (
                       <MenuItem key={level} value={level}>{level}</MenuItem>
@@ -268,13 +282,23 @@ function StylistApplication() {
                 </FormControl>
               </Grid>
             </Grid>
-          </Box>
+          </Paper>
         );
 
       case 1:
         return (
-          <Box>
-            <Typography variant="h6" gutterBottom>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 3 }}>
               Professional Details
             </Typography>
             <Grid container spacing={3}>
@@ -287,6 +311,22 @@ function StylistApplication() {
                   value={formData.stylistInfo.description}
                   onChange={(e) => handleInputChange('stylistInfo', 'description', e.target.value)}
                   helperText="Tell us about your professional background and approach"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -296,6 +336,22 @@ function StylistApplication() {
                   value={formData.stylistInfo.expertise}
                   onChange={(e) => handleInputChange('stylistInfo', 'expertise', e.target.value)}
                   helperText="Your main areas of expertise"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -305,16 +361,42 @@ function StylistApplication() {
                   value={formData.stylistInfo.inspiration}
                   onChange={(e) => handleInputChange('stylistInfo', 'inspiration', e.target.value)}
                   helperText="What inspires your work?"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
                 />
               </Grid>
             </Grid>
-          </Box>
+          </Paper>
         );
 
       case 2:
         return (
-          <Box>
-            <Typography variant="h6" gutterBottom>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 3 }}>
               Experience & Skills
             </Typography>
             <Grid container spacing={3}>
@@ -326,16 +408,48 @@ function StylistApplication() {
                   value={formData.stylistInfo.experience.years}
                   onChange={(e) => handleNestedChange('stylistInfo', 'experience', 'years', e.target.value)}
                   inputProps={{ min: 0, max: 50 }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Commission Rate (%)"
+                  label="Hours per Week"
                   type="number"
-                  value={formData.stylistInfo.commission}
-                  onChange={(e) => handleInputChange('stylistInfo', 'commission', e.target.value)}
-                  inputProps={{ min: 0, max: 100 }}
+                  value={formData.stylistInfo.availability.hoursPerWeek}
+                  onChange={(e) => handleNestedChange('stylistInfo', 'availability', 'hoursPerWeek', e.target.value)}
+                  inputProps={{ min: 0, max: 168 }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -347,10 +461,26 @@ function StylistApplication() {
                   value={formData.stylistInfo.experience.description}
                   onChange={(e) => handleNestedChange('stylistInfo', 'experience', 'description', e.target.value)}
                   helperText="Describe your experience and achievements"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 2 }}>
                   Specializations
                 </Typography>
                 <Box display="flex" flexWrap="wrap" gap={1}>
@@ -359,52 +489,61 @@ function StylistApplication() {
                       key={spec}
                       label={spec.charAt(0).toUpperCase() + spec.slice(1)}
                       onClick={() => handleSpecializationToggle(spec)}
-                      color={formData.stylistInfo.specializations.includes(spec) ? 'primary' : 'default'}
-                      variant={formData.stylistInfo.specializations.includes(spec) ? 'filled' : 'outlined'}
+                      sx={{
+                        backgroundColor: formData.stylistInfo.specializations.includes(spec) ? '#D4B996' : 'rgba(212, 185, 150, 0.2)',
+                        color: formData.stylistInfo.specializations.includes(spec) ? '#2C2C2C' : '#6B6B6B',
+                        fontWeight: formData.stylistInfo.specializations.includes(spec) ? 600 : 500,
+                        borderRadius: '8px',
+                        '&:hover': {
+                          backgroundColor: formData.stylistInfo.specializations.includes(spec) ? '#B8A08A' : 'rgba(212, 185, 150, 0.3)',
+                        }
+                      }}
                     />
                   ))}
                 </Box>
               </Grid>
             </Grid>
-          </Box>
+          </Paper>
         );
 
       case 3:
         return (
-          <Box>
-            <Typography variant="h6" gutterBottom>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 3 }}>
               Availability
             </Typography>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.availability.immediate}
-                      onChange={(e) => handleInputChange('availability', 'immediate', e.target.checked)}
-                    />
-                  }
-                  label="Available to start immediately"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Preferred Start Date"
-                  value={formData.availability.startDate}
-                  onChange={(e) => handleInputChange('availability', 'startDate', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  disabled={formData.availability.immediate}
-                />
-              </Grid>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                  <InputLabel>Preferred Schedule</InputLabel>
+                  <InputLabel sx={{ color: '#6B6B6B' }}>Schedule Preference</InputLabel>
                   <Select
-                    value={formData.availability.preferredSchedule}
-                    onChange={(e) => handleInputChange('availability', 'preferredSchedule', e.target.value)}
-                    label="Preferred Schedule"
+                    value={formData.stylistInfo.availability.schedule}
+                    onChange={(e) => handleNestedChange('stylistInfo', 'availability', 'schedule', e.target.value)}
+                    label="Schedule Preference"
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }}
                   >
                     {scheduleOptions.map(option => (
                       <MenuItem key={option} value={option}>
@@ -414,80 +553,200 @@ function StylistApplication() {
                   </Select>
                 </FormControl>
               </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Preferred Start Date"
+                  type="date"
+                  value={formData.stylistInfo.availability.startDate}
+                  onChange={(e) => handleNestedChange('stylistInfo', 'availability', 'startDate', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Additional Notes"
+                  value={formData.stylistInfo.availability.notes}
+                  onChange={(e) => handleNestedChange('stylistInfo', 'availability', 'notes', e.target.value)}
+                  helperText="Any additional information about your availability"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
+                />
+              </Grid>
             </Grid>
-          </Box>
+          </Paper>
         );
 
       case 4:
         return (
-          <Box>
-            <Typography variant="h6" gutterBottom>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 3 }}>
               Motivation
             </Typography>
-            <TextField
-              fullWidth
-              multiline
-              rows={6}
-              label="Why do you want to join our team?"
-              value={formData.motivation}
-              onChange={(e) => {
-                setFormData(prev => ({ ...prev, motivation: e.target.value }));
-                if (error && e.target.value.length >= 50) {
-                  setError('');
-                }
-              }}
-              helperText={`Tell us about your motivation and what you can bring to our team (${formData.motivation.length}/1000 characters, minimum 50 required)`}
-              inputProps={{ maxLength: 1000 }}
-              error={formData.motivation.length > 0 && formData.motivation.length < 50}
-            />
-            <FormHelperText 
-              error={formData.motivation.length > 0 && formData.motivation.length < 50}
-              sx={{ mt: 1 }}
-            >
-              {formData.motivation.length < 50 && formData.motivation.length > 0 
-                ? `Please write at least ${50 - formData.motivation.length} more characters`
-                : `${formData.motivation.length}/1000 characters`
-              }
-            </FormHelperText>
-          </Box>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Why do you want to join our team?"
+                  value={formData.stylistInfo.motivation.whyJoin}
+                  onChange={(e) => handleNestedChange('stylistInfo', 'motivation', 'whyJoin', e.target.value)}
+                  helperText="Tell us why you want to join our team and what you can bring"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Your Goals"
+                  value={formData.stylistInfo.motivation.goals}
+                  onChange={(e) => handleNestedChange('stylistInfo', 'motivation', 'goals', e.target.value)}
+                  helperText="What are your professional goals?"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
         );
 
       case 5:
         return (
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Review Your Application
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 3 }}>
+              Review & Submit
             </Typography>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="subtitle1" gutterBottom>
-                  <strong>Business Name:</strong> {formData.stylistInfo.businessName || 'Not specified'}
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  <strong>Level:</strong> {formData.stylistInfo.level || 'Not specified'}
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  <strong>Experience:</strong> {formData.stylistInfo.experience.years} years
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  <strong>Specializations:</strong> {formData.stylistInfo.specializations.join(', ') || 'None selected'}
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  <strong>Availability:</strong> {formData.availability.immediate ? 'Immediate' : formData.availability.startDate}
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  <strong>Schedule:</strong> {formData.availability.preferredSchedule.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Motivation:</strong>
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  {formData.motivation}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Box>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Card
+                  elevation={0}
+                  sx={{
+                    borderRadius: '12px',
+                    background: 'rgba(248, 246, 242, 0.8)',
+                    border: '1px solid rgba(212, 185, 150, 0.3)',
+                    boxShadow: '0px 2px 8px rgba(44, 44, 44, 0.04)'
+                  }}
+                >
+                  <CardContent>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 2 }}>
+                      Application Summary
+                    </Typography>
+                    <Divider sx={{ mb: 2, borderColor: 'rgba(212, 185, 150, 0.3)' }} />
+                    
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                          <strong style={{ color: '#2C2C2C' }}>Business Name:</strong> {formData.stylistInfo.businessName || 'Not specified'}
+                        </Typography>
+                        <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                          <strong style={{ color: '#2C2C2C' }}>Level:</strong> {formData.stylistInfo.level || 'Not specified'}
+                        </Typography>
+                        <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                          <strong style={{ color: '#2C2C2C' }}>Experience:</strong> {formData.stylistInfo.experience.years || '0'} years
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                          <strong style={{ color: '#2C2C2C' }}>Schedule:</strong> {formData.stylistInfo.availability.schedule || 'Not specified'}
+                        </Typography>
+                        <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                          <strong style={{ color: '#2C2C2C' }}>Hours/Week:</strong> {formData.stylistInfo.availability.hoursPerWeek || 'Not specified'}
+                        </Typography>
+                        <Typography variant="body1" sx={{ mb: 1, color: '#6B6B6B' }}>
+                          <strong style={{ color: '#2C2C2C' }}>Specializations:</strong> {formData.stylistInfo.specializations.length > 0 ? formData.stylistInfo.specializations.join(', ') : 'None selected'}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Paper>
         );
 
       default:
@@ -498,94 +757,261 @@ function StylistApplication() {
   // If user has existing application, show status
   if (existingApplication) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <CheckCircle color="primary" sx={{ fontSize: 64, mb: 2 }} />
-          <Typography variant="h4" gutterBottom>
-            Application Already Submitted
-          </Typography>
-          <Typography variant="h6" color="primary" gutterBottom>
-            Status: {existingApplication.status.replace('_', ' ').toUpperCase()}
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 3 }}>
-            You have already submitted an application. We will review it and get back to you soon.
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={() => navigate('/dashboard-client')}
-          >
-            Back to Dashboard
-          </Button>
-        </Paper>
-      </Container>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 100%)',
+          pt: { xs: 10, sm: 12 },
+          pb: 4
+        }}
+      >
+        <Container maxWidth="md">
+          <Grow in timeout={1000}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 4,
+                textAlign: 'center',
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(212, 185, 150, 0.2)',
+                boxShadow: '0px 8px 32px rgba(44, 44, 44, 0.08)'
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  p: 2,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)',
+                  mb: 2
+                }}
+              >
+                <CheckCircle sx={{ fontSize: 48, color: '#ffffff' }} />
+              </Box>
+              <Typography variant="h4" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 2 }}>
+                Application Already Submitted
+              </Typography>
+              <Typography variant="h6" sx={{ color: '#D4B996', fontWeight: 600, mb: 2 }}>
+                Status: {existingApplication.status.replace('_', ' ').toUpperCase()}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 3, color: '#6B6B6B' }}>
+                You have already submitted an application. We will review it and get back to you soon.
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => navigate('/dashboard-client')}
+                sx={{
+                  background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                  color: '#2C2C2C',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+                    transform: 'translateY(-2px) scale(1.02)',
+                    boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
+                  }
+                }}
+              >
+                Back to Dashboard
+              </Button>
+            </Paper>
+          </Grow>
+        </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom align="center">
-          Become a Hairstylist
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 4 }} align="center" color="text.secondary">
-          Join our team of professional hairstylists and start your journey with us
-        </Typography>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 100%)',
+        pt: { xs: 10, sm: 12 },
+        pb: 4
+      }}
+    >
+      <Container maxWidth="lg">
+        {/* Header */}
+        <Slide direction="down" in timeout={800}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              mb: 4,
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 246, 242, 0.95) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              textAlign: 'center',
+              boxShadow: '0px 8px 32px rgba(44, 44, 44, 0.08)'
+            }}
+          >
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#2C2C2C', mb: 1, letterSpacing: '-0.02em' }}>
+              Become a Hairstylist
+            </Typography>
+            <Typography variant="body1" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
+              Join our team of professional hairstylists and start your journey with us
+            </Typography>
+          </Paper>
+        </Slide>
 
+        {/* Success/Error Alerts */}
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
+          <Fade in timeout={300}>
+            <Alert
+              severity="error"
+              sx={{
+                mb: 3,
+                borderRadius: '12px',
+                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                color: '#d32f2f',
+                border: '1px solid rgba(244, 67, 54, 0.2)'
+              }}
+              onClose={() => setError('')}
+            >
+              {error}
+            </Alert>
+          </Fade>
         )}
 
         {success && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            {success}
-          </Alert>
+          <Fade in timeout={300}>
+            <Alert
+              severity="success"
+              sx={{
+                mb: 3,
+                borderRadius: '12px',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                color: '#2e7d32',
+                border: '1px solid rgba(76, 175, 80, 0.2)'
+              }}
+              onClose={() => setSuccess('')}
+            >
+              {success}
+            </Alert>
+          </Fade>
         )}
 
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
-        <Box sx={{ mt: 4, mb: 4 }}>
-          {renderStepContent(activeStep)}
-        </Box>
-
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Button
-            disabled={activeStep === 0}
-            onClick={handleBack}
-            startIcon={<ArrowBack />}
+        {/* Stepper */}
+        <Grow in timeout={1000}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              mb: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
           >
-            Back
-          </Button>
-          <Box>
-            {activeStep === steps.length - 1 ? (
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                disabled={loading}
-                startIcon={loading ? <CircularProgress size={20} /> : <CheckCircle />}
-              >
-                {loading ? 'Submitting...' : 'Submit Application'}
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                onClick={handleNext}
-                endIcon={<ArrowForward />}
-              >
-                Next
-              </Button>
-            )}
+            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel sx={{ color: '#D4B996' }}>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Paper>
+        </Grow>
+
+        {/* Step Content */}
+        <Grow in timeout={1200}>
+          <Box sx={{ mt: 4, mb: 4 }}>
+            {renderStepContent(activeStep)}
           </Box>
-        </Box>
-      </Paper>
-    </Container>
+        </Grow>
+
+        {/* Navigation Buttons */}
+        <Grow in timeout={1400}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Button
+                disabled={activeStep === 0}
+                onClick={handleBack}
+                startIcon={<ArrowBack />}
+                sx={{
+                  color: '#6B6B6B',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  '&:disabled': { color: '#cccccc' },
+                  '&:hover': {
+                    backgroundColor: 'rgba(212, 185, 150, 0.1)'
+                  }
+                }}
+              >
+                Back
+              </Button>
+              <Box>
+                {activeStep === steps.length - 1 ? (
+                  <Button
+                    variant="contained"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    startIcon={loading ? <CircularProgress size={20} /> : <CheckCircle />}
+                    sx={{
+                      background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                      color: '#2C2C2C',
+                      fontWeight: 600,
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+                        transform: 'translateY(-2px) scale(1.02)',
+                        boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
+                      }
+                    }}
+                  >
+                    {loading ? 'Submitting...' : 'Submit Application'}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    endIcon={<ArrowForward />}
+                    sx={{
+                      background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                      color: '#2C2C2C',
+                      fontWeight: 600,
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+                        transform: 'translateY(-2px) scale(1.02)',
+                        boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
+                      }
+                    }}
+                  >
+                    Next
+                  </Button>
+                )}
+              </Box>
+            </Box>
+          </Paper>
+        </Grow>
+      </Container>
+    </Box>
   );
 }
 

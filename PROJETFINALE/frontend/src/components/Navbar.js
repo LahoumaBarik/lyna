@@ -24,6 +24,7 @@ import {
   Close
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
+import './Navbar.css';
 
 const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -81,113 +82,182 @@ const Navbar = () => {
 
   return (
     <>
-      <AppBar position="sticky" elevation={0}>
-        <Toolbar>
-          {/* Hamburger Menu Button - always visible */}
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            onClick={handleMobileMenuToggle}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
+      <AppBar 
+        position="sticky" 
+        elevation={0}
+        className="navbar-glass animate-navbar-fade"
+        sx={{
+          background: 'rgba(255,255,255,0.75)',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(212, 185, 150, 0.2)',
+          borderRadius: '0 0 2.2rem 2.2rem',
+          boxShadow: '0 8px 32px 0 rgba(176, 137, 104, 0.13), 0 2px 8px rgba(176, 137, 104, 0.08)',
+        }}
+      >
+        <Toolbar sx={{ 
+          padding: { xs: '0.8rem 1.5rem', sm: '1.1rem 2.7rem' },
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: { xs: '0.5rem', sm: '1rem' },
+          minHeight: { xs: '64px', sm: '72px' }
+        }}>
+          {/* Left side - Hamburger and Logo */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: { xs: '0.5rem', sm: '1rem' },
+            flex: '0 0 auto'
+          }}>
+            {/* Hamburger Menu Button - always visible */}
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              onClick={handleMobileMenuToggle}
+              sx={{ 
+                color: '#B78C68',
+                padding: { xs: '0.5rem', sm: '0.75rem' },
+                '&:hover': {
+                  color: '#8B5E34',
+                  transform: 'scale(1.1)',
+                },
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
 
-          {/* Logo */}
-          <Typography
-            variant="h4"
-            component={Link}
-            to="/"
-            sx={{
-              flexGrow: 0,
-              textDecoration: 'none',
-              color: 'inherit',
-              fontWeight: 'bold',
-              mr: 4
-            }}
-          >
-            She
-          </Typography>
+            {/* Logo */}
+            <Typography
+              variant="h4"
+              component={Link}
+              to="/"
+              className="navbar-title"
+              sx={{
+                textDecoration: 'none',
+                color: '#7f5539',
+                fontWeight: 700,
+                fontSize: { xs: '1.2rem', sm: '1.55rem' },
+                letterSpacing: '1.5px',
+                fontFamily: '"Montserrat", Arial, sans-serif',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  transform: 'scale(1.08) rotate(-4deg)',
+                  filter: 'drop-shadow(0 2px 8px #e3caa5)',
+                }
+              }}
+            >
+              She
+            </Typography>
+          </Box>
 
-          {/* Flex Spacer */}
-          <Box sx={{ flexGrow: 1 }} />
-
-          {/* User Menu or Auth Buttons on the far right */}
+          {/* Right side - User Menu or Auth Buttons */}
           {user ? (
-            <Box>
-              <Tooltip title="User menu">
-                <IconButton
-                  size="large"
-                  aria-label="account of current user"
-                  aria-controls="menu-appbar"
-                  aria-haspopup="true"
-                  onClick={handleMenu}
-                  color="inherit"
-                >
-                  <Avatar sx={{ width: 32, height: 32 }}>
-                    {user.firstName?.charAt(0) || user.email?.charAt(0)}
-                  </Avatar>
-                </IconButton>
-              </Tooltip>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
+            <Box className="navbar-menu-premium" sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: { xs: '0.5rem', sm: '0.8rem' },
+              flex: '0 0 auto',
+              flexWrap: { xs: 'wrap', sm: 'nowrap' }
+            }}>
+              <Typography className="navbar-user-premium" sx={{ 
+                color: '#7f5539', 
+                fontWeight: 600, 
+                fontSize: { xs: '0.9rem', sm: '1.08rem' }
+              }}>
+                {user.firstName || user.email}
+              </Typography>
+              <Button
+                className="navbar-btn-premium"
+                onClick={handleDashboardClick}
+                sx={{
+                  background: 'linear-gradient(90deg, #a67c52 0%, #e3caa5 100%)',
+                  color: '#fff',
+                  fontWeight: 700,
+                  borderRadius: '16px',
+                  padding: { xs: '6px 16px', sm: '9px 22px' },
+                  fontSize: { xs: '0.9rem', sm: '1.08rem' },
+                  boxShadow: '0 2px 8px rgba(166, 124, 82, 0.10)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, #e57373 0%, #a67c52 100%)',
+                    color: '#fff8f0',
+                    transform: 'translateY(-2px) scale(1.04)',
+                    boxShadow: '0 8px 32px rgba(166, 124, 82, 0.18)',
+                  }
                 }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
               >
-                <MenuItem onClick={handleDashboardClick}>
-                  <ListItemIcon>
-                    <Dashboard fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    {user.role === 'client' ? 'Dashboard Client' : 
-                     user.role === 'stylist' ? 'Dashboard Coiffeuse' : 
-                     user.role === 'admin' ? 'Dashboard Admin' : 'Dashboard'}
-                  </ListItemText>
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleLogoutClick}>
-                  <ListItemIcon>
-                    <Logout fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>Déconnexion</ListItemText>
-                </MenuItem>
-              </Menu>
+                {user.role === 'client' ? 'Dashboard Client' : 
+                 user.role === 'stylist' ? 'Dashboard Coiffeuse' : 
+                 user.role === 'admin' ? 'Dashboard Admin' : 'Dashboard'}
+              </Button>
+              <Button
+                className="navbar-logout-premium"
+                onClick={handleLogoutClick}
+                sx={{
+                  background: 'none',
+                  color: '#e57373',
+                  border: '2px solid #e57373',
+                  padding: { xs: '6px 16px', sm: '8px 20px' },
+                  fontWeight: 700,
+                  borderRadius: '16px',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    background: '#fff8f0',
+                    color: '#a67c52',
+                    border: '2px solid #a67c52',
+                  }
+                }}
+              >
+                Déconnexion
+              </Button>
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box className="navbar-menu-premium" sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: { xs: '0.5rem', sm: '1rem' },
+              flex: '0 0 auto'
+            }}>
               <Button
-                color="inherit"
+                className="navbar-link-premium"
                 onClick={() => navigate('/login')}
-                variant="outlined"
-                sx={{ 
-                  borderColor: 'inherit',
+                sx={{
+                  color: '#a67c52',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  fontSize: { xs: '0.9rem', sm: '1.08rem' },
+                  padding: { xs: '6px 14px', sm: '7px 18px' },
+                  borderRadius: '14px',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
-                    borderColor: 'inherit',
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)'
+                    background: '#fff8f0',
+                    color: '#e57373',
+                    boxShadow: '0 2px 8px #e3caa5',
                   }
                 }}
               >
                 Connexion
               </Button>
               <Button
-                color="inherit"
+                className="navbar-btn-premium"
                 onClick={() => navigate('/register')}
-                variant="contained"
-                sx={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                sx={{
+                  background: 'linear-gradient(90deg, #a67c52 0%, #e3caa5 100%)',
+                  color: '#fff',
+                  fontWeight: 700,
+                  borderRadius: '16px',
+                  padding: { xs: '6px 16px', sm: '9px 22px' },
+                  fontSize: { xs: '0.9rem', sm: '1.08rem' },
+                  boxShadow: '0 2px 8px rgba(166, 124, 82, 0.10)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.25)'
+                    background: 'linear-gradient(90deg, #e57373 0%, #a67c52 100%)',
+                    color: '#fff8f0',
+                    transform: 'translateY(-2px) scale(1.04)',
+                    boxShadow: '0 8px 32px rgba(166, 124, 82, 0.18)',
                   }
                 }}
               >
@@ -198,7 +268,7 @@ const Navbar = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Mobile Slide-out Sidebar - now always visible */}
+      {/* Mobile Slide-out Sidebar */}
       <Drawer
         anchor="left"
         open={mobileMenuOpen}
@@ -266,6 +336,7 @@ const Navbar = () => {
               <Box
                 key={item.path}
                 onClick={() => handleMenuItemClick(item.path)}
+                className="menu-item"
                 sx={{
                   display: 'flex',
                   alignItems: 'center',

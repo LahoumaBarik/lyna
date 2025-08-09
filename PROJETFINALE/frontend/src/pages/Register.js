@@ -14,7 +14,10 @@ import {
   IconButton,
   LinearProgress,
   useMediaQuery,
-  useTheme
+  useTheme,
+  Fade,
+  Slide,
+  Grow
 } from '@mui/material';
 import {
   Person,
@@ -103,8 +106,10 @@ const Register = ({ setUser, fromReservation }) => {
   };
 
   const handleBack = () => {
-    setError('');
-    setCurrentStep(currentStep - 1);
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+      setError('');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -113,92 +118,23 @@ const Register = ({ setUser, fromReservation }) => {
     setError('');
     
     try {
-      const result = await authRegister({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phone || '',
-        role: 'client'
-      });
+      const result = await authRegister(formData);
       
-      // Check if registration was successful
       if (result.success) {
-        if (result.autoLogin && result.user) {
-          // User was automatically logged in, navigate to appropriate dashboard
-          const userRole = result.user.role;
-          
-          // Check for pending reservation first
-          const pendingReservation = localStorage.getItem('pendingReservation');
-          if (pendingReservation) {
-            navigate('/reservation');
-          } else {
-            // Navigate based on user role
-            switch (userRole) {
-              case 'admin':
-                navigate('/admin/dashboard');
-                break;
-              case 'stylist':
-                navigate('/dashboard-coiffeuse');
-                break;
-              case 'client':
-              default:
-                navigate('/dashboard-client');
-                break;
-            }
-          }
+        // Check for pending reservation
+        const pendingReservation = localStorage.getItem('pendingReservation');
+        if (pendingReservation) {
+          navigate('/reservation');
         } else {
-          // Auto-login failed, redirect to login page
-          navigate('/login');
+          navigate('/dashboard-client');
         }
       } else {
-        // Registration failed, show error
-        setError(result.error || 'Une erreur est survenue lors de l\'inscription.');
+        setError(result.error || 'Échec de l\'inscription');
       }
-
     } catch (err) {
-      setError(err.message || 'Une erreur est survenue lors de l\'inscription.');
-      console.error('Registration error:', err);
+      setError(err.message || 'Une erreur est survenue lors de l\'inscription');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const IconComponent = currentStepConfig.icon;
-
-  // Common input styling to avoid the double box effect
-  const inputSx = {
-    '& .MuiOutlinedInput-root': {
-      borderRadius: 2,
-      backgroundColor: 'transparent !important',
-      '& fieldset': {
-        borderColor: '#e0e0e0',
-        borderWidth: 1.5
-      },
-      '&:hover': {
-        backgroundColor: 'transparent !important',
-        '& fieldset': {
-          borderColor: '#D4B996'
-        }
-      },
-      '&.Mui-focused': {
-        backgroundColor: 'transparent !important',
-        '& fieldset': {
-          borderColor: '#D4B996',
-          borderWidth: 2
-        }
-      },
-      '& input': {
-        color: '#2c2c2c',
-        fontWeight: 500,
-        backgroundColor: 'transparent !important'
-      },
-      '& input:focus': {
-        backgroundColor: 'transparent !important'
-      },
-      '& input:hover': {
-        backgroundColor: 'transparent !important'
-      }
     }
   };
 
@@ -206,263 +142,259 @@ const Register = ({ setUser, fromReservation }) => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f8f4f0 0%, #e8ddd4 100%)',
+        background: 'linear-gradient(135deg, #D4B996 0%, #F5E6D3 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        pt: { xs: 10, sm: 12 }, // Account for navbar height
-        pb: 4,
-        px: 2
+        py: 4,
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'url("/images/hero-bg.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: 0.1,
+          zIndex: 0
+        }
       }}
     >
-      <Container maxWidth="sm">
-        <Paper
-          elevation={8}
-          sx={{
-            p: { xs: 4, sm: 6 },
-            borderRadius: 3,
-            background: '#ffffff',
-            maxWidth: 450,
-            mx: 'auto',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
-          }}
-        >
-          {/* Header */}
-          <Box textAlign="center" sx={{ mb: 4 }}>
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                background: '#2c2c2c',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 3
-              }}
-            >
-              <PersonAdd sx={{ color: '#ffffff', fontSize: 32 }} />
-            </Box>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                mb: 1,
-                color: '#2c2c2c',
-                fontSize: { xs: '1.75rem', sm: '2rem' }
-              }}
-            >
-              Créer un compte
-            </Typography>
-            {fromReservation && (
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: '#666666',
-                  mb: 2,
-                  fontSize: '0.95rem'
-                }}
-              >
-                Créez votre compte pour finaliser votre réservation
-              </Typography>
-            )}
-          </Box>
-
-          {/* Progress */}
-          <Box sx={{ mb: 4 }}>
-            <LinearProgress 
-              variant="determinate" 
-              value={progress} 
-              sx={{ 
-                height: 6, 
-                borderRadius: 3,
-                backgroundColor: '#f0f0f0',
-                '& .MuiLinearProgress-bar': {
-                  backgroundColor: '#D4B996',
-                  borderRadius: 3
-                }
-              }} 
-            />
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                mt: 2, 
-                textAlign: 'center',
-                color: '#666666',
-                fontWeight: 500
-              }}
-            >
-              Étape {currentStep + 1} sur {steps.length}: {currentStepConfig.label}
-            </Typography>
-          </Box>
-
-          {/* Error Alert */}
-          {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 3, 
-                borderRadius: 2,
-                '& .MuiAlert-message': {
-                  color: '#d32f2f',
-                  fontWeight: 500
-                }
-              }}
-            >
-              {error}
-            </Alert>
-          )}
-
-          {/* Form */}
-          <Box component="form" onSubmit={handleNext}>
-            <TextField
-              fullWidth
-              label={currentStepConfig.label}
-              name={currentStepConfig.name}
-              type={currentStepConfig.type === 'password' && showPassword ? 'text' : currentStepConfig.type}
-              value={formData[currentStepConfig.name]}
-              onChange={handleChange}
-              required
-              autoFocus
-              sx={{ ...inputSx, mb: 4 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <IconComponent sx={{ color: '#666666' }} />
-                  </InputAdornment>
-                ),
-                endAdornment: currentStepConfig.type === 'password' ? (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      sx={{ color: '#666666' }}
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ) : null
-              }}
-              InputLabelProps={{
-                sx: { color: '#666666', fontWeight: 500 }
-              }}
-            />
-
-            {/* Navigation Buttons */}
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              gap: 2,
-              mb: 3
-            }}>
-              {currentStep > 0 ? (
-                <Button
-                  variant="outlined"
-                  onClick={handleBack}
-                  startIcon={<ArrowBack />}
-                  sx={{ 
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1.5,
-                    borderColor: '#e0e0e0',
-                    color: '#666666',
-                    textTransform: 'none',
-                    fontWeight: 500,
-                    '&:hover': {
-                      borderColor: '#D4B996',
-                      backgroundColor: 'rgba(212, 185, 150, 0.04)'
-                    }
-                  }}
-                >
-                  Retour
-                </Button>
-              ) : (
-                <Button
-                  variant="text"
-                  component={Link}
-                  to="/login"
-                  sx={{ 
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1.5,
-                    color: '#666666',
-                    textTransform: 'none',
-                    fontWeight: 500,
-                    '&:hover': {
-                      backgroundColor: 'rgba(0,0,0,0.04)'
-                    }
-                  }}
-                >
-                  Connexion
-                </Button>
-              )}
-
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={loading}
-                endIcon={isLastStep ? <PersonAdd /> : <ArrowForward />}
-                sx={{ 
-                  borderRadius: 2,
-                  px: 4,
-                  py: 1.5,
-                  minWidth: 140,
-                  backgroundColor: '#2c2c2c',
-                  color: '#ffffff',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: '#1a1a1a',
-                    transform: 'translateY(-1px)',
-                    boxShadow: '0 6px 20px rgba(44,44,44,0.25)'
-                  },
-                  '&:disabled': {
-                    backgroundColor: '#cccccc',
-                    color: '#999999'
-                  },
-                  transition: 'all 0.2s ease-in-out'
-                }}
-              >
-                {loading ? 'Inscription...' : (isLastStep ? "S'inscrire" : 'Suivant')}
-              </Button>
-            </Box>
-
-            <Box 
-              textAlign="center" 
-              sx={{ 
-                pt: 2, 
-                borderTop: '1px solid #f0f0f0'
-              }}
-            >
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: '#666666',
-                  mb: 1
-                }}
-              >
-                Vous avez déjà un compte ?
-              </Typography>
-              <MuiLink 
-                component={Link} 
-                to="/login" 
-                sx={{ 
-                  color: '#2c2c2c',
+      <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
+        <Slide direction="up" in timeout={800}>
+          <Paper
+            elevation={24}
+            className="fade-in"
+            sx={{
+              p: { xs: 3, md: 6 },
+              borderRadius: '24px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0px 20px 40px rgba(44, 44, 44, 0.15)',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '4px',
+                background: 'linear-gradient(90deg, #D4B996 0%, #B8A08A 100%)',
+              }
+            }}
+          >
+            {/* Header */}
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <Typography
+                variant="h3"
+                sx={{
                   fontWeight: 700,
-                  textDecoration: 'none',
-                  fontSize: '0.95rem',
-                  '&:hover': {
-                    textDecoration: 'underline'
+                  color: '#2C2C2C',
+                  marginBottom: 1,
+                  letterSpacing: '-0.02em'
+                }}
+              >
+                Créer un compte
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: '#6B6B6B',
+                  fontSize: '1.1rem'
+                }}
+              >
+                Rejoignez la communauté She
+              </Typography>
+            </Box>
+
+            {/* Progress Bar */}
+            <Box sx={{ mb: 4 }}>
+              <LinearProgress
+                variant="determinate"
+                value={progress}
+                sx={{
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: 'rgba(212, 185, 150, 0.2)',
+                  '& .MuiLinearProgress-bar': {
+                    borderRadius: 4,
+                    background: 'linear-gradient(90deg, #D4B996 0%, #B8A08A 100%)',
                   }
                 }}
+              />
+              <Typography
+                variant="body2"
+                sx={{
+                  textAlign: 'center',
+                  mt: 1,
+                  color: '#6B6B6B',
+                  fontWeight: 500
+                }}
               >
-                Connectez-vous
-              </MuiLink>
+                Étape {currentStep + 1} sur {steps.length}
+              </Typography>
             </Box>
-          </Box>
-        </Paper>
+
+            {/* Error Alert */}
+            {error && (
+              <Fade in timeout={300}>
+                <Alert 
+                  severity="error" 
+                  sx={{ 
+                    mb: 3,
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                    color: '#d32f2f',
+                    border: '1px solid rgba(244, 67, 54, 0.2)'
+                  }}
+                >
+                  {error}
+                </Alert>
+              </Fade>
+            )}
+
+            {/* Registration Form */}
+            <Box component="form" onSubmit={handleNext} sx={{ mt: 2 }}>
+              <Grow in timeout={500}>
+                <TextField
+                  fullWidth
+                  label={currentStepConfig.label}
+                  name={currentStepConfig.name}
+                  type={currentStepConfig.name === 'password' ? (showPassword ? 'text' : 'password') : currentStepConfig.type}
+                  value={formData[currentStepConfig.name]}
+                  onChange={handleChange}
+                  required
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        {React.createElement(currentStepConfig.icon, { sx: { color: '#D4B996' } })}
+                      </InputAdornment>
+                    ),
+                    endAdornment: currentStepConfig.name === 'password' ? (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          sx={{ color: '#D4B996' }}
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                        borderWidth: '1.5px'
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: '#6B6B6B',
+                      '&.Mui-focused': {
+                        color: '#B8A08A'
+                      }
+                    }
+                  }}
+                />
+              </Grow>
+
+              {/* Navigation Buttons */}
+              <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
+                {currentStep > 0 && (
+                  <Button
+                    onClick={handleBack}
+                    variant="outlined"
+                    sx={{
+                      flex: 1,
+                      py: 1.5,
+                      borderRadius: '16px',
+                      borderColor: '#D4B996',
+                      color: '#2C2C2C',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      '&:hover': {
+                        borderColor: '#B8A08A',
+                        backgroundColor: 'rgba(212, 185, 150, 0.08)',
+                      }
+                    }}
+                  >
+                    <ArrowBack sx={{ mr: 1 }} />
+                    Précédent
+                  </Button>
+                )}
+                
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={loading}
+                  sx={{
+                    flex: 1,
+                    py: 1.5,
+                    borderRadius: '16px',
+                    background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                    color: '#2C2C2C',
+                    fontWeight: 600,
+                    fontSize: '1.1rem',
+                    textTransform: 'none',
+                    boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+                      transform: 'translateY(-2px) scale(1.02)',
+                      boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
+                    },
+                    '&:disabled': {
+                      background: 'rgba(212, 185, 150, 0.3)',
+                      color: 'rgba(44, 44, 44, 0.5)'
+                    }
+                  }}
+                >
+                  {loading ? 'Inscription...' : (isLastStep ? 'S\'inscrire' : 'Suivant')}
+                  {!isLastStep && <ArrowForward sx={{ ml: 1 }} />}
+                </Button>
+              </Box>
+            </Box>
+
+            {/* Login Link */}
+            <Box sx={{ textAlign: 'center', mt: 4, pt: 3, borderTop: '1px solid rgba(212, 185, 150, 0.2)' }}>
+              <Typography variant="body2" sx={{ color: '#6B6B6B' }}>
+                Déjà un compte ?{' '}
+                <MuiLink
+                  component={Link}
+                  to="/login"
+                  sx={{
+                    color: '#D4B996',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    '&:hover': {
+                      color: '#B8A08A',
+                      textDecoration: 'underline'
+                    }
+                  }}
+                >
+                  Se connecter
+                </MuiLink>
+              </Typography>
+            </Box>
+          </Paper>
+        </Slide>
       </Container>
     </Box>
   );

@@ -21,7 +21,10 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Grid
+  Grid,
+  Fade,
+  Slide,
+  Grow
 } from '@mui/material';
 import {
   Person,
@@ -98,80 +101,54 @@ function DashboardClient() {
         });
         
         // Handle different response structures
-        if (response.data && response.data.success && response.data.data) {
-          setReservations(response.data.data);
-        } else if (Array.isArray(response.data)) {
-          setReservations(response.data);
-        } else if (response.data && Array.isArray(response.data.reservations)) {
-          setReservations(response.data.reservations);
-        } else {
-          setReservations([]);
-        }
-      } catch (e) {
-        console.error('Error fetching reservations:', e);
+        const reservationsData = response.data.data || response.data || [];
+        setReservations(reservationsData);
+      } catch (err) {
+        console.error('Error fetching reservations:', err);
         setError('Erreur lors du chargement des réservations');
-        setReservations([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (user) {
-      fetchReservations();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
+    fetchReservations();
+  }, []);
 
-  // Separate upcoming and past reservations
-  const now = new Date();
-  const upcomingReservations = reservations.filter(r => 
-    new Date(r.date) > now && r.status !== 'annulee'
-  );
-
-  // Handle reservation cancellation
   const handleCancel = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) return;
-    
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.put(`/reservations/${id}/cancel`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      setSuccess('Rendez-vous annulé avec succès !');
-      setTimeout(() => setSuccess(''), 3000);
-      
-      // Refresh reservations list immediately
-      window.location.reload();
-    } catch (err) {
-      setError('Erreur lors de l\'annulation du rendez-vous');
+    if (window.confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
+      try {
+        const token = localStorage.getItem('accessToken');
+        await axios.delete(`/reservations/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        setReservations(prev => prev.filter(r => r._id !== id));
+        setSuccess('Réservation annulée avec succès');
+      } catch (err) {
+        setError('Erreur lors de l\'annulation de la réservation');
+      }
     }
   };
 
-  // Handle reservation deletion
   const handleDelete = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce rendez-vous ?')) return;
-    
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.delete(`/reservations/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      setSuccess('Rendez-vous supprimé avec succès !');
-      setTimeout(() => setSuccess(''), 3000);
-      
-      // Refresh reservations list immediately
-      window.location.reload();
-    } catch (err) {
-      setError('Erreur lors de la suppression du rendez-vous');
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette réservation ?')) {
+      try {
+        const token = localStorage.getItem('accessToken');
+        await axios.delete(`/reservations/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        setReservations(prev => prev.filter(r => r._id !== id));
+        setSuccess('Réservation supprimée avec succès');
+      } catch (err) {
+        setError('Erreur lors de la suppression de la réservation');
+      }
     }
   };
 
-  // Format date for display
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -179,123 +156,95 @@ function DashboardClient() {
     });
   };
 
-  // Get status color
   const getStatusColor = (status) => {
     switch (status) {
-      case 'confirmee': return 'success';
-      case 'en_attente': return 'warning';
-      case 'annulee': return 'error';
-      default: return 'default';
+      case 'confirmed': return '#4caf50';
+      case 'pending': return '#ff9800';
+      case 'cancelled': return '#f44336';
+      case 'completed': return '#2196f3';
+      default: return '#666666';
     }
   };
 
-  // Get status label
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'confirmee': return 'Confirmé';
-      case 'en_attente': return 'En attente';
-      case 'annulee': return 'Annulé';
+      case 'confirmed': return 'Confirmé';
+      case 'pending': return 'En attente';
+      case 'cancelled': return 'Annulé';
+      case 'completed': return 'Terminé';
       default: return status;
     }
   };
 
-  // Handle modify reservation
   const handleModifyReservation = (reservation) => {
     setModifyingReservation(reservation);
-    setNewDate(new Date(reservation.date).toISOString().split('T')[0]);
-    setNewTime(reservation.startTime || reservation.heureDebut || '');
+    setModificationForm({
+      date: reservation.date ? reservation.date.split('T')[0] : '',
+      time: reservation.time || '',
+      service: reservation.service || '',
+      stylist: reservation.stylist || ''
+    });
     setModifyDialogOpen(true);
   };
 
   const handleSaveModification = async () => {
-    if (!modifyingReservation) return;
-    
     try {
-      setLoading(true);
       const token = localStorage.getItem('accessToken');
-      
-      const updateData = {
-        date: newDate,
-        startTime: newTime,
-        services: modificationForm.services || modifyingReservation.services
+      const updatedReservation = {
+        ...modifyingReservation,
+        ...modificationForm
       };
 
-      const response = await axios.patch(`/reservations/${modifyingReservation._id}`, updateData, {
+      await axios.put(`/reservations/${modifyingReservation._id}`, updatedReservation, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (response.status === 200) {
-        setSuccess('Réservation modifiée avec succès !');
-        setModifyDialogOpen(false);
-        setModifyingReservation(null);
-        setModificationForm({});
-        setNewDate('');
-        setNewTime('');
-        
-        // Refresh the page to show updated data
-        window.location.reload();
-      }
-    } catch (error) {
-      setError(error.response?.data?.message || 'Erreur lors de la modification');
-    } finally {
-      setLoading(false);
+      setReservations(prev => prev.map(r => 
+        r._id === modifyingReservation._id ? { ...r, ...modificationForm } : r
+      ));
+      
+      setModifyDialogOpen(false);
+      setModifyingReservation(null);
+      setModificationForm({});
+      setSuccess('Réservation modifiée avec succès');
+    } catch (err) {
+      setError('Erreur lors de la modification de la réservation');
     }
   };
 
-  // Handle different reservation actions
   const handleLeaveReview = (reservationId) => {
-    navigate(`/reviews?reservation=${reservationId}`);
+    setSelectedReservationForReview(reservationId);
+    setShowReviewForm(true);
   };
 
   const handleMarkCompleted = async (reservationId) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.patch(`/reservations/${reservationId}`, { status: 'completed' }, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      await axios.put(`/reservations/${reservationId}`, { status: 'completed' }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (response.status === 200) {
-        setSuccess('Rendez-vous marqué comme terminé !');
-        setTimeout(() => setSuccess(''), 3000);
-        
-        // Refresh reservations list
-        window.location.reload();
-      }
-    } catch (error) {
-      setError('Erreur lors du marquage comme terminé');
+      setReservations(prev => prev.map(r => 
+        r._id === reservationId ? { ...r, status: 'completed' } : r
+      ));
+      setSuccess('Réservation marquée comme terminée');
+    } catch (err) {
+      setError('Erreur lors de la mise à jour du statut');
     }
   };
 
-  // Determine if appointment is in the past
   const isAppointmentPast = (reservationDate) => {
     return new Date(reservationDate) < new Date();
   };
 
-  // Get appropriate actions for reservation
   const getReservationActions = (reservation) => {
+    const { status, _id } = reservation;
     const isPast = isAppointmentPast(reservation.date);
-    const status = reservation.status;
-    
-    if (isPast && status === 'pending') {
-      // Past appointment that needs to be marked complete
+
+    if (status === 'completed' && !reservation.review) {
+      // Completed but no review - can leave review
       return (
-        <Tooltip title="Marquer comme terminé et laisser un avis">
-          <IconButton
-            size="small"
-            onClick={() => handleMarkCompleted(reservation._id)}
-            sx={{ color: '#4caf50' }}
-          >
-            <Person fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      );
-    } else if (isPast && status === 'completed') {
-      // Past completed appointment - can review
-      return (
-        <Tooltip title="Laisser/modifier un avis">
+        <Tooltip title="Laisser un avis">
           <IconButton
             size="small"
             onClick={() => handleLeaveReview(reservation._id)}
@@ -337,7 +286,7 @@ function DashboardClient() {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f8f4f0 0%, #e8ddd4 100%)',
+        background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 100%)',
         pt: { xs: 10, sm: 12 },
         pb: 4
       }}
@@ -345,270 +294,369 @@ function DashboardClient() {
       <Container maxWidth="lg">
         {/* Success/Error Alerts */}
         {success && (
-          <Alert 
-            severity="success" 
-            sx={{ mb: 3, borderRadius: 2 }}
-            onClose={() => setSuccess('')}
-          >
-            {success}
-          </Alert>
+          <Fade in timeout={300}>
+            <Alert 
+              severity="success" 
+              sx={{ 
+                mb: 3, 
+                borderRadius: '12px',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                color: '#2e7d32',
+                border: '1px solid rgba(76, 175, 80, 0.2)'
+              }}
+              onClose={() => setSuccess('')}
+            >
+              {success}
+            </Alert>
+          </Fade>
         )}
         {error && (
-          <Alert 
-            severity="error" 
-            sx={{ mb: 3, borderRadius: 2 }}
-            onClose={() => setError('')}
-          >
-            {error}
-          </Alert>
+          <Fade in timeout={300}>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 3, 
+                borderRadius: '12px',
+                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                color: '#d32f2f',
+                border: '1px solid rgba(244, 67, 54, 0.2)'
+              }}
+              onClose={() => setError('')}
+            >
+              {error}
+            </Alert>
+          </Fade>
         )}
 
         {/* Header */}
-        <Paper
-          elevation={3}
-          sx={{
-            p: 4,
-            mb: 4,
-            borderRadius: 3,
-            background: '#ffffff',
-            textAlign: 'center'
-          }}
-        >
-          <Avatar
+        <Slide direction="down" in timeout={800}>
+          <Paper
+            elevation={0}
             sx={{
-              width: 80,
-              height: 80,
-              mx: 'auto',
-              mb: 2,
-              bgcolor: '#2c2c2c',
-              fontSize: '2rem'
+              p: 4,
+              mb: 4,
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 246, 242, 0.95) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              textAlign: 'center',
+              boxShadow: '0px 8px 32px rgba(44, 44, 44, 0.08)'
             }}
           >
-            {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-          </Avatar>
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: 700,
-              color: '#2c2c2c',
-              mb: 1
-            }}
-          >
-            Bienvenue, {user?.firstName} !
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{
-              color: '#666666',
-              fontWeight: 400
-            }}
-          >
-            Tableau de bord Client
-          </Typography>
-        </Paper>
+            <Avatar
+              sx={{
+                width: 80,
+                height: 80,
+                mx: 'auto',
+                mb: 2,
+                background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                fontSize: '2rem',
+                fontWeight: 600,
+                boxShadow: '0px 4px 12px rgba(212, 185, 150, 0.3)'
+              }}
+            >
+              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+            </Avatar>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                color: '#2C2C2C',
+                mb: 1,
+                letterSpacing: '-0.02em'
+              }}
+            >
+              Bienvenue, {user?.firstName} !
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{
+                color: '#6B6B6B',
+                fontWeight: 400,
+                fontSize: '1.1rem'
+              }}
+            >
+              Tableau de bord Client
+            </Typography>
+          </Paper>
+        </Slide>
 
         {/* Profile Summary Card */}
-        <Paper
-          elevation={3}
-          sx={{
-            p: 3,
-            mb: 4,
-            borderRadius: 3,
-            background: '#ffffff'
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c', display: 'flex', alignItems: 'center' }}>
-              <Person sx={{ mr: 1, color: '#D4B996' }} />
-              Mon Profil
-            </Typography>
-            <Tooltip title="Modifier mon profil">
-              <IconButton
-                onClick={() => navigate('/profile')}
-                sx={{
-                  bgcolor: '#D4B996',
-                  color: 'white',
-                  '&:hover': { bgcolor: '#c4a985' }
-                }}
-              >
-                <Edit />
-              </IconButton>
-            </Tooltip>
-          </Box>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, minWidth: '300px' }}>
-              <Person sx={{ mr: 1, color: '#666666', fontSize: 18 }} />
-              <Typography variant="body1">
-                <strong>Nom :</strong> {user?.firstName} {user?.lastName}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, minWidth: '300px' }}>
-              <Email sx={{ mr: 1, color: '#666666', fontSize: 18 }} />
-              <Typography variant="body1">
-                <strong>Email :</strong> {user?.email}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: '300px' }}>
-              <Phone sx={{ mr: 1, color: '#666666', fontSize: 18 }} />
-              <Typography variant="body1">
-                <strong>Téléphone :</strong> {user?.phone || 'Non renseigné'}
-              </Typography>
-            </Box>
-          </Box>
-        </Paper>
-
-        {/* Become a Hairstylist Section */}
-        <Paper
-          elevation={3}
-          sx={{
-            p: 3,
-            mb: 4,
-            borderRadius: 3,
-            background: 'linear-gradient(135deg, #D4B996 0%, #c4a985 100%)',
-            textAlign: 'center'
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c', mb: 2 }}>
-            <Work sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Intéressé par une carrière de coiffeur ?
-          </Typography>
-          <Typography variant="body1" sx={{ color: '#2c2c2c', mb: 3 }}>
-            Rejoignez notre équipe de professionnels et développez votre carrière avec nous
-          </Typography>
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<Work />}
-            onClick={() => navigate('/stylist-application')}
+        <Grow in timeout={1000}>
+          <Paper
+            elevation={0}
             sx={{
-              bgcolor: '#2c2c2c',
-              color: '#ffffff',
-              py: 1.5,
-              px: 4,
-              borderRadius: 2,
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              '&:hover': {
-                bgcolor: '#1a1a1a'
-              }
+              p: 3,
+              mb: 4,
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
             }}
           >
-            Devenir Coiffeur
-          </Button>
-        </Paper>
-
-        {/* Quick Actions */}
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<Add />}
-            onClick={() => navigate('/reservation')}
-            sx={{
-              bgcolor: '#2c2c2c',
-              color: '#ffffff',
-              py: 1.5,
-              px: 4,
-              borderRadius: 2,
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              '&:hover': {
-                bgcolor: '#1a1a1a'
-              }
-            }}
-          >
-            Prendre un nouveau rendez-vous
-          </Button>
-        </Box>
-
-        {/* Reservations Section */}
-        <Paper
-          elevation={3}
-          sx={{
-            borderRadius: 3,
-            background: '#ffffff',
-            overflow: 'hidden',
-            p: 3
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c', mb: 3 }}>
-            Mes rendez-vous à venir
-          </Typography>
-
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : upcomingReservations.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="h6" sx={{ color: '#666666', mb: 1 }}>
-                Aucun rendez-vous à venir
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C', display: 'flex', alignItems: 'center' }}>
+                <Person sx={{ mr: 1, color: '#D4B996' }} />
+                Mon Profil
               </Typography>
-              <Typography variant="body1" sx={{ color: '#999999' }}>
-                Prenez votre prochain rendez-vous dès maintenant !
-              </Typography>
-            </Box>
-          ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {upcomingReservations.map((reservation) => (
-                <Card
-                  key={reservation._id}
-                  elevation={2}
+              <Tooltip title="Modifier mon profil">
+                <IconButton
+                  onClick={() => navigate('/profile')}
                   sx={{
-                    borderRadius: 2,
-                    border: '1px solid #f0f0f0',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: 3
-                    }
+                    background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                    color: '#2C2C2C',
+                    '&:hover': { 
+                      background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+                      transform: 'scale(1.05)'
+                    },
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }}
                 >
-                  <CardContent>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Chip
-                        label={getStatusLabel(reservation.status)}
-                        color={getStatusColor(reservation.status)}
-                        size="small"
-                        sx={{ fontWeight: 600 }}
-                      />
-                      <Typography variant="body2" sx={{ color: '#666666' }}>
-                        {formatDate(reservation.date)}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <AccessTime sx={{ mr: 1, color: '#D4B996', fontSize: 18 }} />
-                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                          {reservation.heureDebut} - {reservation.heureFin}
-                        </Typography>
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <ContentCut sx={{ mr: 1, color: '#D4B996', fontSize: 18 }} />
-                        <Typography variant="body1">
-                          {reservation.service?.name || 'Service non défini'}
-                        </Typography>
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Person sx={{ mr: 1, color: '#D4B996', fontSize: 18 }} />
-                        <Typography variant="body1">
-                          {reservation.stylist?.firstName} {reservation.stylist?.lastName}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                      {getReservationActions(reservation)}
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
+                  <Edit />
+                </IconButton>
+              </Tooltip>
             </Box>
-          )}
-        </Paper>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center', p: 2, background: 'rgba(248, 246, 242, 0.5)', borderRadius: '12px' }}>
+                  <Person sx={{ mr: 1, color: '#D4B996' }} />
+                  <Box>
+                    <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
+                      Nom complet
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#2C2C2C', fontWeight: 600 }}>
+                      {user?.firstName} {user?.lastName}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center', p: 2, background: 'rgba(248, 246, 242, 0.5)', borderRadius: '12px' }}>
+                  <Email sx={{ mr: 1, color: '#D4B996' }} />
+                  <Box>
+                    <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
+                      Email
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#2C2C2C', fontWeight: 600 }}>
+                      {user?.email}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center', p: 2, background: 'rgba(248, 246, 242, 0.5)', borderRadius: '12px' }}>
+                  <Phone sx={{ mr: 1, color: '#D4B996' }} />
+                  <Box>
+                    <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
+                      Téléphone
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#2C2C2C', fontWeight: 600 }}>
+                      {user?.phone || 'Non renseigné'}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grow>
+
+        {/* Become a Hairstylist Section */}
+        <Grow in timeout={1200}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              mb: 4,
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+              textAlign: 'center',
+              boxShadow: '0px 8px 32px rgba(212, 185, 150, 0.3)',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'url("/images/hero-bg.jpg")',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                opacity: 0.1,
+                zIndex: 0
+              }
+            }}
+          >
+            <Box sx={{ position: 'relative', zIndex: 1 }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 2 }}>
+                <Work sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Intéressé par une carrière de coiffeur ?
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#2C2C2C', mb: 3, fontSize: '1.1rem' }}>
+                Rejoignez notre équipe de professionnels et développez votre carrière avec nous
+              </Typography>
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<Work />}
+                onClick={() => navigate('/stylist-application')}
+                sx={{
+                  background: 'rgba(44, 44, 44, 0.9)',
+                  color: '#FFFFFF',
+                  py: 1.5,
+                  px: 4,
+                  borderRadius: '16px',
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.2)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    background: '#2C2C2C',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0px 8px 16px rgba(44, 44, 44, 0.3)'
+                  }
+                }}
+              >
+                Devenir Coiffeur
+              </Button>
+            </Box>
+          </Paper>
+        </Grow>
+
+        {/* Quick Actions */}
+        <Grow in timeout={1400}>
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<Add />}
+              onClick={() => navigate('/reservation')}
+              sx={{
+                background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                color: '#2C2C2C',
+                py: 1.5,
+                px: 4,
+                borderRadius: '16px',
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+                  transform: 'translateY(-2px) scale(1.02)',
+                  boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
+                }
+              }}
+            >
+              Prendre un nouveau rendez-vous
+            </Button>
+          </Box>
+        </Grow>
+
+        {/* Reservations Section */}
+        <Grow in timeout={1600}>
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              overflow: 'hidden',
+              p: 3,
+              boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
+            }}
+          >
+            <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 3 }}>
+              Mes rendez-vous à venir
+            </Typography>
+
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress sx={{ color: '#D4B996' }} />
+              </Box>
+            ) : reservations.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography variant="h6" sx={{ color: '#6B6B6B', mb: 1 }}>
+                  Aucun rendez-vous à venir
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#8A857C' }}>
+                  Prenez votre prochain rendez-vous dès maintenant !
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {reservations.map((reservation, index) => (
+                  <Grow in timeout={800 + index * 200} key={reservation._id}>
+                    <Card
+                      elevation={0}
+                      sx={{
+                        borderRadius: '12px',
+                        border: '1px solid rgba(212, 185, 150, 0.2)',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: '0px 8px 16px rgba(44, 44, 44, 0.12)',
+                          border: '1px solid rgba(212, 185, 150, 0.4)'
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 3 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Chip
+                            label={getStatusLabel(reservation.status)}
+                            sx={{
+                              backgroundColor: getStatusColor(reservation.status),
+                              color: '#FFFFFF',
+                              fontWeight: 600,
+                              borderRadius: '8px'
+                            }}
+                            size="small"
+                          />
+                          <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
+                            {formatDate(reservation.date)}
+                          </Typography>
+                        </Box>
+                        
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', p: 1, background: 'rgba(248, 246, 242, 0.5)', borderRadius: '8px' }}>
+                            <AccessTime sx={{ mr: 1, color: '#D4B996', fontSize: 18 }} />
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2C2C2C' }}>
+                              {reservation.heureDebut} - {reservation.heureFin}
+                            </Typography>
+                          </Box>
+                          
+                          <Box sx={{ display: 'flex', alignItems: 'center', p: 1, background: 'rgba(248, 246, 242, 0.5)', borderRadius: '8px' }}>
+                            <ContentCut sx={{ mr: 1, color: '#D4B996', fontSize: 18 }} />
+                            <Typography variant="body1" sx={{ color: '#2C2C2C' }}>
+                              {reservation.service?.name || 'Service non défini'}
+                            </Typography>
+                          </Box>
+                          
+                          <Box sx={{ display: 'flex', alignItems: 'center', p: 1, background: 'rgba(248, 246, 242, 0.5)', borderRadius: '8px' }}>
+                            <Person sx={{ mr: 1, color: '#D4B996', fontSize: 18 }} />
+                            <Typography variant="body1" sx={{ color: '#2C2C2C' }}>
+                              {reservation.stylist?.firstName} {reservation.stylist?.lastName}
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                          {getReservationActions(reservation)}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grow>
+                ))}
+              </Box>
+            )}
+          </Paper>
+        </Grow>
 
         {/* Floating Action Button */}
         <Fab
@@ -617,8 +665,15 @@ function DashboardClient() {
             position: 'fixed',
             bottom: 24,
             right: 24,
-            bgcolor: '#D4B996',
-            '&:hover': { bgcolor: '#c4a985' }
+            background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+            color: '#2C2C2C',
+            boxShadow: '0px 4px 12px rgba(212, 185, 150, 0.3)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': { 
+              background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+              transform: 'scale(1.1)',
+              boxShadow: '0px 8px 24px rgba(212, 185, 150, 0.4)'
+            }
           }}
           onClick={() => navigate('/reservation')}
         >
@@ -626,11 +681,35 @@ function DashboardClient() {
         </Fab>
 
         {/* Modify Reservation Dialog */}
-        <Dialog open={modifyDialogOpen} onClose={() => setModifyDialogOpen(false)} maxWidth="sm" fullWidth>
+        <Dialog 
+          open={modifyDialogOpen} 
+          onClose={() => setModifyDialogOpen(false)} 
+          maxWidth="sm" 
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(212, 185, 150, 0.2)',
+              boxShadow: '0px 8px 32px rgba(44, 44, 44, 0.15)'
+            }
+          }}
+        >
           <DialogTitle>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6">Modifier la réservation</Typography>
-              <IconButton onClick={() => setModifyDialogOpen(false)}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
+                Modifier la réservation
+              </Typography>
+              <IconButton 
+                onClick={() => setModifyDialogOpen(false)}
+                sx={{
+                  color: '#D4B996',
+                  '&:hover': {
+                    backgroundColor: 'rgba(212, 185, 150, 0.1)'
+                  }
+                }}
+              >
                 <Close />
               </IconButton>
             </Box>
@@ -642,9 +721,24 @@ function DashboardClient() {
                   fullWidth
                   type="date"
                   label="Nouvelle date"
-                  value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  value={modificationForm.date || ''}
+                  onChange={(e) => setModificationForm({...modificationForm, date: e.target.value})}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -652,16 +746,55 @@ function DashboardClient() {
                   fullWidth
                   type="time"
                   label="Nouvelle heure"
-                  value={newTime}
-                  onChange={(e) => setNewTime(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  value={modificationForm.time || ''}
+                  onChange={(e) => setModificationForm({...modificationForm, time: e.target.value})}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& fieldset': {
+                        borderColor: 'rgba(212, 185, 150, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#D4B996',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#B8A08A',
+                        borderWidth: '2px'
+                      }
+                    }
+                  }}
                 />
               </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setModifyDialogOpen(false)}>Annuler</Button>
-            <Button onClick={handleSaveModification} variant="contained" startIcon={<Save />}>
+          <DialogActions sx={{ p: 3 }}>
+            <Button
+              onClick={() => setModifyDialogOpen(false)}
+              sx={{
+                color: '#6B6B6B',
+                '&:hover': {
+                  backgroundColor: 'rgba(212, 185, 150, 0.1)'
+                }
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleSaveModification}
+              variant="contained"
+              sx={{
+                background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                color: '#2C2C2C',
+                fontWeight: 600,
+                borderRadius: '12px',
+                textTransform: 'none',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
+                  transform: 'translateY(-1px)'
+                }
+              }}
+            >
               Sauvegarder
             </Button>
           </DialogActions>
