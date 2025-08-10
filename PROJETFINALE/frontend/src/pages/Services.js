@@ -13,361 +13,613 @@ import {
   CardContent,
   Grid,
   Fade,
-  Grow
+  Slide,
+  Grow,
+  IconButton,
+  Divider
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
+import {
+  Add as AddIcon,
+  Remove as RemoveIcon,
+  CalendarToday,
+  AccessTime,
+  Star,
+  Euro,
+  ArrowForward,
+  AutoAwesome,
+  Brush,
+  ContentCut,
+  Spa,
+  ColorLens
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import './Services.css';
 
 const detailedServiceData = {
   "Coupe": {
     image: "/images/image2.jpg",
+    icon: <ContentCut sx={{ fontSize: 32 }} />,
+    description: "Des coupes modernes et personnalisées qui révèlent votre style unique",
+    gradient: 'linear-gradient(135deg, #8B7355 0%, #B5A593 100%)',
     items: [
-      { title: 'COUPE FEMME', prices: [{ level: 'Nouveau Talent', price: '50$' }, { level: 'Styliste', price: '60$' }, { level: 'Expert', price: '70$' }, { level: 'Senior', price: '80$' }, { level: 'Master', price: '90$' }] },
-      { title: 'COUPE HOMME', prices: [{ level: 'Styliste', price: '40$' }, { level: 'Expert', price: '45$' }, { level: 'Senior', price: '50$' }] },
-      { title: 'FRANGE', prices: [{ level: 'Tous', price: '15$' }] },
+      { 
+        title: 'COUPE FEMME', 
+        description: 'Coupe personnalisée selon votre morphologie et style de vie',
+        duration: '45-60 min',
+        prices: [
+          { level: 'Nouveau Talent', price: '50€' }, 
+          { level: 'Styliste', price: '60€' }, 
+          { level: 'Expert', price: '70€' }, 
+          { level: 'Senior', price: '80€' }, 
+          { level: 'Master', price: '90€' }
+        ] 
+      },
+      { 
+        title: 'COUPE HOMME', 
+        description: 'Coupe masculine moderne avec finitions soignées',
+        duration: '30-45 min',
+        prices: [
+          { level: 'Styliste', price: '40€' }, 
+          { level: 'Expert', price: '45€' }, 
+          { level: 'Senior', price: '50€' }
+        ] 
+      },
+      { 
+        title: 'FRANGE', 
+        description: 'Création ou retouche de frange adaptée à votre visage',
+        duration: '15-20 min',
+        prices: [{ level: 'Tous niveaux', price: '15€' }] 
+      },
     ]
   },
   "Coloration": {
     image: "/images/back.jpg",
+    icon: <ColorLens sx={{ fontSize: 32 }} />,
+    description: "Colorations sur-mesure avec des produits premium pour un résultat éclatant",
+    gradient: 'linear-gradient(135deg, #D4AF37 0%, #B8941F 100%)',
     items: [
-      { title: 'COLORATION RACINE', prices: [{ level: 'Académie', price: '65$' }, { level: 'Nouveau Talent', price: '78$' }, { level: 'Styliste', price: '83$' }, { level: 'Expert', price: '93$' }, { level: 'Senior', price: '98$' }, { level: 'Master', price: '101$' }] },
-      { title: 'COLORATION GLOBALE', prices: [{ level: 'Académie', price: '85$' }, { level: 'Nouveau Talent', price: '95$' }, { level: 'Styliste', price: '105$' }, { level: 'Expert', price: '115$' }, { level: 'Senior', price: '125$' }, { level: 'Master', price: '135$' }] },
-      { title: 'BALAYAGE', prices: [{ level: 'Nouveau Talent', price: '120$' }, { level: 'Styliste', price: '130$' }, { level: 'Expert', price: '140$' }, { level: 'Senior', price: '150$' }, { level: 'Master', price: '160$' }] },
-      { title: 'BALAYAGE CHEVEUX LONG', prices: [{ level: 'Styliste', price: '150$' }, { level: 'Expert', price: '160$' }, { level: 'Senior', price: '170$' }, { level: 'Master', price: '180$' }] },
+      { 
+        title: 'COLORATION RACINE', 
+        description: 'Retouche racines pour un rendu naturel et uniforme',
+        duration: '1h30-2h',
+        prices: [
+          { level: 'Académie', price: '65€' }, 
+          { level: 'Nouveau Talent', price: '78€' }, 
+          { level: 'Styliste', price: '83€' }, 
+          { level: 'Expert', price: '93€' }, 
+          { level: 'Senior', price: '98€' }, 
+          { level: 'Master', price: '101€' }
+        ] 
+      },
+      { 
+        title: 'COLORATION GLOBALE', 
+        description: 'Coloration complète avec techniques avancées',
+        duration: '2h30-3h30',
+        prices: [
+          { level: 'Académie', price: '85€' }, 
+          { level: 'Nouveau Talent', price: '95€' }, 
+          { level: 'Styliste', price: '105€' }, 
+          { level: 'Expert', price: '115€' }, 
+          { level: 'Senior', price: '125€' }, 
+          { level: 'Master', price: '135€' }
+        ] 
+      },
+      { 
+        title: 'BALAYAGE', 
+        description: 'Technique de mèches pour un effet naturel et lumineux',
+        duration: '3h-4h',
+        prices: [
+          { level: 'Nouveau Talent', price: '120€' }, 
+          { level: 'Styliste', price: '130€' }, 
+          { level: 'Expert', price: '140€' }, 
+          { level: 'Senior', price: '150€' }, 
+          { level: 'Master', price: '160€' }
+        ] 
+      },
+      { 
+        title: 'BALAYAGE CHEVEUX LONGS', 
+        description: 'Balayage spécialisé pour cheveux longs avec finition experte',
+        duration: '4h-5h',
+        prices: [
+          { level: 'Styliste', price: '150€' }, 
+          { level: 'Expert', price: '160€' }, 
+          { level: 'Senior', price: '170€' }, 
+          { level: 'Master', price: '180€' }
+        ] 
+      },
     ]
   },
   "Lissage": {
     image: "/images/image7.jpg",
+    icon: <AutoAwesome sx={{ fontSize: 32 }} />,
+    description: "Traitements lissants professionnels pour des cheveux soyeux et disciplinés",
+    gradient: 'linear-gradient(135deg, #8B7355 0%, #D4AF37 100%)',
     items: [
-      { title: 'LISSAGE BRÉSILIEN', prices: [{ level: 'Expert', price: '250$' }, { level: 'Senior', price: '300$' }, { level: 'Master', price: '350$' }] },
-      { title: 'TRAITEMENT HYDRATANT', prices: [{ level: 'Tous', price: '75$' }] },
+      { 
+        title: 'LISSAGE BRÉSILIEN', 
+        description: 'Traitement de lissage longue durée pour cheveux indisciplinés',
+        duration: '3h-4h',
+        prices: [
+          { level: 'Expert', price: '250€' }, 
+          { level: 'Senior', price: '300€' }, 
+          { level: 'Master', price: '350€' }
+        ] 
+      },
+      { 
+        title: 'TRAITEMENT HYDRATANT', 
+        description: 'Soin intensif pour nourrir et réparer les cheveux',
+        duration: '1h-1h30',
+        prices: [{ level: 'Tous niveaux', price: '75€' }] 
+      },
     ]
   },
   "Soins": {
     image: "/images/image8.jpg",
+    icon: <Spa sx={{ fontSize: 32 }} />,
+    description: "Soins capillaires premium pour sublimer et protéger vos cheveux",
+    gradient: 'linear-gradient(135deg, #B5A593 0%, #8B7355 100%)',
     items: [
-      { title: 'SOIN OLAPLEX', prices: [{ level: 'Tous', price: '50$' }] },
-      { title: 'SOIN KÉRASTASE', prices: [{ level: 'Tous', price: '60$' }] },
+      { 
+        title: 'SOIN OLAPLEX', 
+        description: 'Reconstruction et protection des cheveux abîmés',
+        duration: '45min-1h',
+        prices: [{ level: 'Tous niveaux', price: '50€' }] 
+      },
+      { 
+        title: 'SOIN KÉRASTASE', 
+        description: 'Soin haute couture adapté à votre type de cheveux',
+        duration: '1h-1h15',
+        prices: [{ level: 'Tous niveaux', price: '60€' }] 
+      },
     ]
   },
   "Extensions": {
     image: "/images/image4.jpg",
+    icon: <Brush sx={{ fontSize: 32 }} />,
+    description: "Extensions professionnelles pour volume et longueur instantanés",
+    gradient: 'linear-gradient(135deg, #D4AF37 0%, #8B7355 100%)',
     items: [
-      { title: 'CONSULTATION EXTENSIONS', prices: [{ level: 'Tous', price: 'Gratuit' }] },
-      { title: 'POSE BANDE ADHÉSIVE', prices: [{ level: 'Expert', price: 'Sur devis' }] },
+      { 
+        title: 'CONSULTATION EXTENSIONS', 
+        description: 'Conseil personnalisé pour choisir vos extensions',
+        duration: '30min',
+        prices: [{ level: 'Tous niveaux', price: 'Gratuit' }] 
+      },
+      { 
+        title: 'POSE EXTENSIONS', 
+        description: 'Pose professionnelle d\'extensions naturelles',
+        duration: '2h-3h',
+        prices: [{ level: 'Expert+', price: 'Sur devis' }] 
+      },
     ]
   }
 };
 
 const Services = () => {
-  const [selectedCategory, setSelectedCategory] = useState('Coloration');
-  const [expanded, setExpanded] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('Coupe');
+  const [expandedPanel, setExpandedPanel] = useState(false);
   const navigate = useNavigate();
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
-    setExpanded(false);
+    setExpandedPanel(false);
   };
 
   const handleAccordionChange = (panel) => (event, isExpanded) => {
-    setExpanded(isExpanded ? panel : false);
-  };
-  
-  const handleCTAClick = () => {
-    navigate('/reservation');
+    setExpandedPanel(isExpanded ? panel : false);
   };
 
-  const categories = ["Coupe", "Coloration", "Lissage", "Soins", "Extensions"];
-  const currentCategoryData = detailedServiceData[selectedCategory];
+  const handleCTAClick = () => {
+    navigate('/rendez-vous');
+  };
 
   return (
-    <Box sx={{ overflow: 'hidden' }}>
+    <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 100%)' }}>
       {/* Hero Section */}
       <Box
-        className="services-hero fade-in"
         sx={{
+          background: 'linear-gradient(135deg, #8B7355 0%, #6B5842 100%)',
+          color: 'white',
+          py: { xs: 8, md: 12 },
           position: 'relative',
-          background: 'linear-gradient(135deg, rgba(212, 185, 150, 0.9) 0%, rgba(184, 160, 138, 0.9) 100%), url("/images/hero-bg.jpg")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          minHeight: '60vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          py: 8
+          overflow: 'hidden'
         }}
       >
         <Container maxWidth="lg">
-          <Box className="hero-content">
-            <Typography 
-              variant="h1" 
-              className="hero-title fade-in"
-              sx={{
-                color: '#2C2C2C',
-                fontWeight: 700,
-                fontSize: { xs: '2.5rem', md: '3.5rem' },
-                letterSpacing: '-0.02em',
-                marginBottom: 2,
-                textShadow: '2px 2px 4px rgba(255, 255, 255, 0.3)'
-              }}
-            >
-              Nos Services
-            </Typography>
-            <Typography 
-              variant="h5" 
-              className="hero-subtitle slide-in-up"
-              sx={{
-                color: '#2C2C2C',
-                fontSize: { xs: '1.1rem', md: '1.3rem' },
-                fontWeight: 400,
-                maxWidth: '600px',
-                margin: '0 auto',
-                lineHeight: 1.6
-              }}
-            >
-              Découvrez notre gamme complète de services de coiffure professionnels
-            </Typography>
-          </Box>
-        </Container>
-      </Box>
-
-      <Container maxWidth="lg" className="services-container" sx={{ py: 6 }}>
-        {/* Categories Filter */}
-        <Box className="categories-filter" sx={{ mb: 4 }}>
-          <Typography 
-            variant="h6" 
-            className="filter-title fade-in"
-            sx={{
-              fontWeight: 600,
-              color: '#2C2C2C',
-              marginBottom: 2,
-              textAlign: 'center'
-            }}
-          >
-            Filtrer par catégorie :
-          </Typography>
-          <Box className="filter-chips" sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
-            {categories.map((category, index) => (
-              <Grow in timeout={500 + index * 100} key={category}>
-                <Chip
-                  label={category}
-                  onClick={() => handleCategoryClick(category)}
-                  className={selectedCategory === category ? 'selected-category' : ''}
-                  sx={{
-                    backgroundColor: selectedCategory === category ? '#D4B996' : '#F0EDE7',
-                    color: selectedCategory === category ? '#2C2C2C' : '#6B6B6B',
-                    fontWeight: 600,
-                    fontSize: '0.9rem',
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': {
-                      backgroundColor: selectedCategory === category ? '#B8A08A' : '#E6E0D8',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0px 4px 12px rgba(44, 44, 44, 0.15)'
-                    }
-                  }}
-                />
-              </Grow>
-            ))}
-          </Box>
-        </Box>
-
-        {/* Services Content */}
-        <Box sx={{ mt: 4 }}>
-          <Grid container spacing={4}>
-            {/* Image Column */}
-            <Grid item xs={12} md={6}>
-              <Fade in timeout={800}>
-                <Card
-                  className="card-hover"
-                  sx={{
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)',
-                    height: '100%',
-                    minHeight: '400px'
-                  }}
-                >
-                  <CardMedia
-                    component="img"
-                    image={currentCategoryData.image}
-                    alt={selectedCategory}
-                    sx={{
-                      height: '100%',
-                      minHeight: '400px',
-                      objectFit: 'cover'
-                    }}
-                  />
-                </Card>
-              </Fade>
-            </Grid>
-
-            {/* Services List Column */}
-            <Grid item xs={12} md={6}>
-              <Box sx={{ height: '100%' }}>
-                {currentCategoryData.items.map((item, index) => (
-                  <Grow in timeout={800 + index * 200} key={item.title}>
-                    <Accordion
-                      expanded={expanded === `panel${index}`}
-                      onChange={handleAccordionChange(`panel${index}`)}
-                      sx={{
-                        marginBottom: 2,
-                        borderRadius: '12px',
-                        boxShadow: '0px 2px 8px rgba(44, 44, 44, 0.06)',
-                        '&:before': {
-                          display: 'none',
-                        },
-                        '&.Mui-expanded': {
-                          margin: '16px 0',
-                          boxShadow: '0px 8px 16px rgba(44, 44, 44, 0.12)',
-                        },
-                        backgroundColor: '#FFFFFF',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        '&:hover': {
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0px 8px 16px rgba(44, 44, 44, 0.12)',
-                        }
-                      }}
-                    >
-                      <AccordionSummary
-                        expandIcon={expanded === `panel${index}` ? <RemoveIcon /> : <AddIcon />}
-                        sx={{
-                          '& .MuiAccordionSummary-content': {
-                            margin: '16px 0',
-                          },
-                          '& .MuiSvgIcon-root': {
-                            color: '#D4B996',
-                            fontSize: '1.5rem',
-                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                          },
-                          '&:hover .MuiSvgIcon-root': {
-                            color: '#B8A08A',
-                            transform: 'scale(1.1)',
-                          }
-                        }}
-                      >
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontWeight: 600,
-                            color: '#2C2C2C',
-                            fontSize: '1.1rem'
-                          }}
-                        >
-                          {item.title}
-                        </Typography>
-                      </AccordionSummary>
-                      <AccordionDetails sx={{ paddingTop: 0 }}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          {item.prices.map((price, priceIndex) => (
-                            <Box
-                              key={priceIndex}
-                              sx={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                padding: '8px 0',
-                                borderBottom: priceIndex < item.prices.length - 1 ? '1px solid rgba(212, 185, 150, 0.2)' : 'none',
-                                '&:last-child': {
-                                  borderBottom: 'none'
-                                }
-                              }}
-                            >
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  color: '#6B6B6B',
-                                  fontWeight: 500
-                                }}
-                              >
-                                {price.level}
-                              </Typography>
-                              <Typography
-                                variant="body1"
-                                sx={{
-                                  color: '#2C2C2C',
-                                  fontWeight: 600,
-                                  fontSize: '1.1rem'
-                                }}
-                              >
-                                {price.price}
-                              </Typography>
-                            </Box>
-                          ))}
-                        </Box>
-                      </AccordionDetails>
-                    </Accordion>
-                  </Grow>
-                ))}
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* CTA Section */}
-        <Box sx={{ mt: 8, textAlign: 'center' }}>
-          <Fade in timeout={1000}>
-            <Box
-              sx={{
-                background: 'linear-gradient(135deg, #F8F6F2 0%, #F0EDE7 100%)',
-                borderRadius: '16px',
-                padding: '40px 20px',
-                boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
-              }}
-            >
+          <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
+            <Slide direction="up" in timeout={800}>
               <Typography
-                variant="h4"
+                variant="overline"
                 sx={{
+                  fontSize: '1rem',
+                  letterSpacing: '0.2em',
                   fontWeight: 600,
-                  color: '#2C2C2C',
-                  marginBottom: 2
+                  mb: 3,
+                  display: 'block',
+                  color: 'rgba(255, 255, 255, 0.9)'
                 }}
               >
-                Prêt à prendre rendez-vous ?
+                NOS SERVICES
               </Typography>
+            </Slide>
+            <Slide direction="up" in timeout={1000}>
               <Typography
-                variant="body1"
+                variant="h1"
                 sx={{
-                  color: '#6B6B6B',
-                  fontSize: '1.1rem',
-                  marginBottom: 3,
-                  maxWidth: '500px',
-                  margin: '0 auto 24px'
+                  fontWeight: 700,
+                  mb: 3,
+                  fontSize: 'clamp(2.5rem, 6vw, 4rem)',
+                  lineHeight: 1.1
                 }}
               >
-                Réservez votre séance avec l'une de nos coiffeuses professionnelles
+                Excellence & Créativité
               </Typography>
+            </Slide>
+            <Slide direction="up" in timeout={1200}>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 400,
+                  mb: 4,
+                  maxWidth: '600px',
+                  mx: 'auto',
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  lineHeight: 1.4
+                }}
+              >
+                Découvrez notre gamme complète de services coiffure, 
+                conçus pour révéler votre beauté naturelle
+              </Typography>
+            </Slide>
+            <Slide direction="up" in timeout={1400}>
               <Button
                 variant="contained"
                 size="large"
                 onClick={handleCTAClick}
+                endIcon={<CalendarToday />}
                 sx={{
-                  background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
+                  background: 'linear-gradient(135deg, #D4AF37 0%, #E6C866 100%)',
                   color: '#2C2C2C',
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                  padding: '12px 32px',
+                  px: 6,
+                  py: 2,
                   borderRadius: '50px',
+                  fontWeight: 600,
+                  fontSize: '1.125rem',
                   textTransform: 'none',
-                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
-                    transform: 'translateY(-2px) scale(1.02)',
-                    boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
+                    background: 'linear-gradient(135deg, #B8941F 0%, #D4AF37 100%)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.3)'
                   }
                 }}
               >
-                Prendre Rendez-Vous
+                Réserver Maintenant
               </Button>
-            </Box>
-          </Fade>
-        </Box>
-      </Container>
+            </Slide>
+          </Box>
+        </Container>
+        
+        {/* Background Elements */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'url(/images/back.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.1,
+            zIndex: 1
+          }}
+        />
+      </Box>
+
+      {/* Category Navigation */}
+      <Box sx={{ py: 4, background: 'white' }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+            {Object.keys(detailedServiceData).map((category) => (
+              <Chip
+                key={category}
+                label={category}
+                onClick={() => handleCategoryClick(category)}
+                variant={selectedCategory === category ? 'filled' : 'outlined'}
+                sx={{
+                  px: 3,
+                  py: 2,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  borderRadius: '25px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(139, 115, 85, 0.2)'
+                  },
+                  ...(selectedCategory === category && {
+                    background: 'linear-gradient(135deg, #8B7355 0%, #D4AF37 100%)',
+                    color: 'white',
+                    boxShadow: '0 4px 16px rgba(139, 115, 85, 0.3)'
+                  })
+                }}
+              />
+            ))}
+          </Box>
+        </Container>
+      </Box>
+
+      {/* Service Details */}
+      <Box sx={{ py: 8 }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={6}>
+            {/* Service Image */}
+            <Grid item xs={12} md={6}>
+              <Slide direction="right" in timeout={800}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    borderRadius: '24px',
+                    overflow: 'hidden',
+                    boxShadow: '0 16px 32px rgba(0, 0, 0, 0.1)',
+                    '&:hover': {
+                      transform: 'scale(1.02)',
+                      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }
+                  }}
+                >
+                  <img
+                    src={detailedServiceData[selectedCategory].image}
+                    alt={selectedCategory}
+                    style={{
+                      width: '100%',
+                      height: '400px',
+                      objectFit: 'cover'
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 20,
+                      right: 20,
+                      width: 80,
+                      height: 80,
+                      borderRadius: '50%',
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(10px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'primary.main',
+                      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
+                    }}
+                  >
+                    {detailedServiceData[selectedCategory].icon}
+                  </Box>
+                </Box>
+              </Slide>
+            </Grid>
+
+            {/* Service Information */}
+            <Grid item xs={12} md={6}>
+              <Slide direction="left" in timeout={1000}>
+                <Box>
+                  <Typography
+                    variant="h2"
+                    sx={{
+                      fontWeight: 700,
+                      mb: 3,
+                      background: detailedServiceData[selectedCategory].gradient,
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      fontSize: 'clamp(2rem, 4vw, 3rem)'
+                    }}
+                  >
+                    {selectedCategory}
+                  </Typography>
+                  
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 4,
+                      lineHeight: 1.6,
+                      fontSize: '1.125rem'
+                    }}
+                  >
+                    {detailedServiceData[selectedCategory].description}
+                  </Typography>
+
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleCTAClick}
+                    endIcon={<CalendarToday />}
+                    sx={{
+                      background: detailedServiceData[selectedCategory].gradient,
+                      color: 'white',
+                      px: 6,
+                      py: 2,
+                      borderRadius: '50px',
+                      fontWeight: 600,
+                      fontSize: '1.125rem',
+                      textTransform: 'none',
+                      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25)'
+                      }
+                    }}
+                  >
+                    Réserver ce service
+                  </Button>
+                </Box>
+              </Slide>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Service Items */}
+      <Box sx={{ py: 8, background: 'white' }}>
+        <Container maxWidth="lg">
+          <Typography
+            variant="h3"
+            sx={{
+              textAlign: 'center',
+              fontWeight: 700,
+              mb: 6,
+              color: 'text.primary'
+            }}
+          >
+            Détails des prestations
+          </Typography>
+
+          <Grid container spacing={4}>
+            {detailedServiceData[selectedCategory].items.map((item, index) => (
+              <Grid item xs={12} md={6} lg={4} key={index}>
+                <Grow in timeout={800 + index * 200}>
+                  <Card
+                    sx={{
+                      height: '100%',
+                      borderRadius: '20px',
+                      background: 'linear-gradient(135deg, #FFFFFF 0%, #F8F6F2 100%)',
+                      border: '1px solid rgba(139, 115, 85, 0.1)',
+                      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: '0 16px 32px rgba(139, 115, 85, 0.15)'
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          fontWeight: 700,
+                          mb: 2,
+                          color: 'primary.main',
+                          fontSize: '1.25rem'
+                        }}
+                      >
+                        {item.title}
+                      </Typography>
+                      
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: 'text.secondary',
+                          mb: 3,
+                          lineHeight: 1.6
+                        }}
+                      >
+                        {item.description}
+                      </Typography>
+
+                      <Box sx={{ mb: 3 }}>
+                        <Chip
+                          icon={<AccessTime />}
+                          label={item.duration}
+                          sx={{
+                            background: 'rgba(139, 115, 85, 0.1)',
+                            color: 'primary.main',
+                            fontWeight: 500
+                          }}
+                        />
+                      </Box>
+
+                      <Box>
+                        {item.prices.map((price, priceIndex) => (
+                          <Box
+                            key={priceIndex}
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              py: 1,
+                              borderBottom: priceIndex < item.prices.length - 1 ? '1px solid rgba(139, 115, 85, 0.1)' : 'none'
+                            }}
+                          >
+                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                              {price.level}
+                            </Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                              {price.price}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grow>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* CTA Section */}
+      <Box
+        sx={{
+          background: 'linear-gradient(135deg, #8B7355 0%, #6B5842 100%)',
+          color: 'white',
+          py: 8
+        }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                mb: 3,
+                color: 'white'
+              }}
+            >
+              Prêt à transformer votre look ?
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 4,
+                color: 'rgba(255, 255, 255, 0.9)',
+                maxWidth: '600px',
+                mx: 'auto'
+              }}
+            >
+              Réservez votre rendez-vous en ligne et laissez nos experts 
+              prendre soin de votre beauté
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={handleCTAClick}
+              endIcon={<CalendarToday />}
+              sx={{
+                background: 'linear-gradient(135deg, #D4AF37 0%, #E6C866 100%)',
+                color: '#2C2C2C',
+                px: 8,
+                py: 2.5,
+                borderRadius: '50px',
+                fontWeight: 600,
+                fontSize: '1.25rem',
+                textTransform: 'none',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #B8941F 0%, #D4AF37 100%)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 12px 32px rgba(0, 0, 0, 0.3)'
+                }
+              }}
+            >
+              Réserver Maintenant
+            </Button>
+          </Box>
+        </Container>
+      </Box>
     </Box>
   );
 };

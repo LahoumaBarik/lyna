@@ -131,8 +131,6 @@ export const theme = createTheme({
             color: '#2C2C2C',
             '&:hover': {
               background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
-              transform: 'translateY(-2px) scale(1.02)',
-              boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
             },
           },
         },
@@ -194,16 +192,6 @@ export const theme = createTheme({
           background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(212, 185, 150, 0.2)',
-          boxShadow: '0px 8px 32px 0 rgba(176, 137, 104, 0.13), 0px 2px 8px rgba(176, 137, 104, 0.08)',
-        },
-      },
-    },
-    MuiDrawer: {
-      styleOverrides: {
-        paper: {
-          background: 'linear-gradient(180deg, #FDFCFA 0%, #F8F6F2 100%)',
-          borderRight: '1px solid rgba(212, 185, 150, 0.3)',
-          boxShadow: '4px 0 20px rgba(44, 44, 44, 0.12)',
         },
       },
     },

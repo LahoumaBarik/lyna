@@ -1,7 +1,24 @@
 import React from 'react';
-import { Box, Container, Typography, Grid, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import './FAQ.css';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Grid, 
+  Accordion, 
+  AccordionSummary, 
+  AccordionDetails,
+  Card,
+  CardContent,
+  Fade,
+  Slide
+} from '@mui/material';
+import {
+  ExpandMore,
+  Help,
+  AutoAwesome,
+  Eco,
+  TipsAndUpdates
+} from '@mui/icons-material';
 
 const faqData = {
   essentialInfo: [
@@ -21,22 +38,139 @@ const faqData = {
 
 const FAQPage = () => {
   return (
-    <Box className="faq-page">
-      <Container maxWidth="lg" className="faq-container">
-        {/* Header Section */}
-        <Grid container spacing={8} alignItems="center" className="faq-section" columns={{ xs: 12, md: 12 }}>
-          <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
-            <Typography variant="h1" className="faq-main-title">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 50%, #F0EDE7 100%)',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23D4AF37" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+          opacity: 0.4
+        }
+      }}
+    >
+      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2, pt: { xs: 12, sm: 14 }, pb: 8 }}>
+        {/* Hero Section */}
+        <Fade in timeout={800}>
+          <Box sx={{ textAlign: 'center', mb: 8 }}>
+            <Typography
+              variant="h2"
+              sx={{
+                fontFamily: '"Playfair Display", serif',
+                fontWeight: 700,
+                fontSize: { xs: '2.5rem', md: '3.5rem' },
+                background: 'linear-gradient(135deg, #8B7355 0%, #D4AF37 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: 2
+              }}
+            >
               TOUT CE QU'IL FAUT SAVOIR
             </Typography>
-            <Typography variant="h5" className="faq-subtitle">
+            <Typography
+              variant="h5"
+              sx={{
+                color: 'text.secondary',
+                fontWeight: 300,
+                mb: 6
+              }}
+            >
               La référence She
             </Typography>
+          </Box>
+        </Fade>
+
+        {/* Header Section */}
+        <Slide direction="up" in timeout={1000}>
+          <Grid container spacing={6} alignItems="center" sx={{ mb: 8 }}>
+            <Grid item xs={12} md={6}>
+              <Card
+                sx={{
+                  borderRadius: '24px',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(139, 115, 85, 0.1)',
+                  boxShadow: '0 24px 48px rgba(44, 44, 44, 0.12)',
+                  overflow: 'hidden',
+                  height: '100%'
+                }}
+              >
+                <CardContent sx={{ p: { xs: 4, md: 6 }, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Box
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #8B7355 0%, #D4AF37 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mx: 'auto',
+                        mb: 3
+                      }}
+                    >
+                      <Help sx={{ color: 'white', fontSize: 40 }} />
+                    </Box>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontFamily: '"Playfair Display", serif',
+                        fontWeight: 700,
+                        color: 'text.primary',
+                        mb: 2
+                      }}
+                    >
+                      Guide Complet
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: 'text.secondary',
+                        fontSize: '1.125rem',
+                        lineHeight: 1.6
+                      }}
+                    >
+                      Toutes les informations essentielles pour une expérience parfaite chez She
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box
+                sx={{
+                  borderRadius: '24px',
+                  overflow: 'hidden',
+                  boxShadow: '0 24px 48px rgba(44, 44, 44, 0.12)',
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                    transition: 'transform 0.3s ease'
+                  }
+                }}
+              >
+                <img 
+                  src="/images/faq.jpg" 
+                  alt="Salon" 
+                  style={{ 
+                    width: '100%', 
+                    height: '400px', 
+                    objectFit: 'cover',
+                    display: 'block'
+                  }}
+                />
+              </Box>
+            </Grid>
           </Grid>
-          <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
-            <img src="/images/faq.jpg" alt="Salon" className="faq-header-image" />
-          </Grid>
-        </Grid>
+        </Slide>
 
         {/* Accordions Section */}
         <Box className="faq-section">

@@ -17,7 +17,13 @@ import {
   useTheme,
   Fade,
   Slide,
-  Grow
+  Card,
+  CardContent,
+  Chip,
+  Stepper,
+  Step,
+  StepLabel,
+  StepIcon
 } from '@mui/material';
 import {
   Person,
@@ -28,14 +34,36 @@ import {
   VisibilityOff,
   PersonAdd,
   ArrowForward,
-  ArrowBack
+  ArrowBack,
+  CheckCircle,
+  AutoAwesome,
+  Security,
+  Speed
 } from '@mui/icons-material';
 
 const steps = [
-  { name: 'firstName', label: 'Prénom', type: 'text', icon: Person },
-  { name: 'lastName', label: 'Nom de famille', type: 'text', icon: Person },
-  { name: 'email', label: 'Adresse email', type: 'email', icon: Email },
-  { name: 'password', label: 'Mot de passe', type: 'password', icon: Lock }
+  { name: 'firstName', label: 'Prénom', type: 'text', icon: Person, description: 'Votre prénom' },
+  { name: 'lastName', label: 'Nom de famille', type: 'text', icon: Person, description: 'Votre nom de famille' },
+  { name: 'email', label: 'Adresse email', type: 'email', icon: Email, description: 'Votre email de connexion' },
+  { name: 'password', label: 'Mot de passe', type: 'password', icon: Lock, description: 'Minimum 6 caractères' }
+];
+
+const benefits = [
+  {
+    icon: <Speed sx={{ fontSize: 24 }} />,
+    title: "Réservation Express",
+    description: "Réservez en quelques clics, 24h/24"
+  },
+  {
+    icon: <AutoAwesome sx={{ fontSize: 24 }} />,
+    title: "Expérience Personnalisée",
+    description: "Services adaptés à vos préférences"
+  },
+  {
+    icon: <Security sx={{ fontSize: 24 }} />,
+    title: "Données Sécurisées",
+    description: "Vos informations sont protégées"
+  }
 ];
 
 const Register = ({ setUser, fromReservation }) => {
@@ -106,10 +134,8 @@ const Register = ({ setUser, fromReservation }) => {
   };
 
   const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-      setError('');
-    }
+    setError('');
+    setCurrentStep(currentStep - 1);
   };
 
   const handleSubmit = async (e) => {
@@ -118,36 +144,66 @@ const Register = ({ setUser, fromReservation }) => {
     setError('');
     
     try {
-      const result = await authRegister(formData);
+      const result = await authRegister({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone || '',
+        role: 'client'
+      });
       
+      // Check if registration was successful
       if (result.success) {
-        // Check for pending reservation
-        const pendingReservation = localStorage.getItem('pendingReservation');
-        if (pendingReservation) {
-          navigate('/reservation');
+        if (result.autoLogin && result.user) {
+          // User was automatically logged in, navigate to appropriate dashboard
+          const userRole = result.user.role;
+          
+          // Check for pending reservation first
+          const pendingReservation = localStorage.getItem('pendingReservation');
+          if (pendingReservation) {
+            navigate('/reservation');
+          } else {
+            // Navigate based on user role
+            switch (userRole) {
+              case 'admin':
+                navigate('/admin/dashboard');
+                break;
+              case 'stylist':
+                navigate('/dashboard-coiffeuse');
+                break;
+              case 'client':
+              default:
+                navigate('/dashboard-client');
+                break;
+            }
+          }
         } else {
-          navigate('/dashboard-client');
+          // Auto-login failed, redirect to login page
+          navigate('/login');
         }
       } else {
-        setError(result.error || 'Échec de l\'inscription');
+        // Registration failed, show error
+        setError(result.error || 'Une erreur est survenue lors de l\'inscription.');
       }
+
     } catch (err) {
-      setError(err.message || 'Une erreur est survenue lors de l\'inscription');
+      setError(err.message || 'Une erreur est survenue lors de l\'inscription.');
+      console.error('Registration error:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  const IconComponent = currentStepConfig.icon;
+
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #D4B996 0%, #F5E6D3 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        py: 4,
+        background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 50%, #F0EDE7 100%)',
         position: 'relative',
+        overflow: 'hidden',
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -155,246 +211,463 @@ const Register = ({ setUser, fromReservation }) => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'url("/images/hero-bg.jpg")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.1,
-          zIndex: 0
+          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23D4AF37" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+          opacity: 0.4
         }
       }}
     >
-      <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
-        <Slide direction="up" in timeout={800}>
-          <Paper
-            elevation={24}
-            className="fade-in"
+      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
+        <Box
+          sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            py: { xs: 12, md: 8 },
+            px: { xs: 2, md: 4 }
+          }}
+        >
+          <Box
             sx={{
-              p: { xs: 3, md: 6 },
-              borderRadius: '24px',
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(212, 185, 150, 0.2)',
-              position: 'relative',
-              overflow: 'hidden',
-              boxShadow: '0px 20px 40px rgba(44, 44, 44, 0.15)',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: '4px',
-                background: 'linear-gradient(90deg, #D4B996 0%, #B8A08A 100%)',
-              }
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
+              gap: { xs: 4, lg: 8 },
+              alignItems: 'center',
+              maxWidth: '1200px',
+              width: '100%'
             }}
           >
-            {/* Header */}
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 700,
-                  color: '#2C2C2C',
-                  marginBottom: 1,
-                  letterSpacing: '-0.02em'
-                }}
-              >
-                Créer un compte
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: '#6B6B6B',
-                  fontSize: '1.1rem'
-                }}
-              >
-                Rejoignez la communauté She
-              </Typography>
+            {/* Left Side - Benefits (Hidden on Mobile) */}
+            <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
+              <Fade in timeout={800}>
+                <Box>
+                  <Typography
+                    variant="h2"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: { xs: '2.5rem', lg: '3.5rem' },
+                      mb: 3,
+                      background: 'linear-gradient(135deg, #8B7355 0%, #D4AF37 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      lineHeight: 1.2
+                    }}
+                  >
+                    Rejoignez She Salon
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 6,
+                      fontSize: '1.25rem',
+                      lineHeight: 1.6,
+                      maxWidth: '500px'
+                    }}
+                  >
+                    Créez votre compte en quelques étapes et découvrez une expérience beauté exceptionnelle avec nos services premium.
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {benefits.map((benefit, index) => (
+                      <Slide direction="right" in timeout={1000 + index * 200} key={index}>
+                        <Card
+                          sx={{
+                            p: 3,
+                            background: 'rgba(255, 255, 255, 0.7)',
+                            backdropFilter: 'blur(10px)',
+                            border: '1px solid rgba(139, 115, 85, 0.1)',
+                            borderRadius: '16px',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            '&:hover': {
+                              transform: 'translateX(8px)',
+                              boxShadow: '0 8px 24px rgba(139, 115, 85, 0.15)',
+                              background: 'rgba(255, 255, 255, 0.9)'
+                            }
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Box
+                              sx={{
+                                width: 56,
+                                height: 56,
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #D4AF37 0%, #B8941F 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                flexShrink: 0
+                              }}
+                            >
+                              {benefit.icon}
+                            </Box>
+                            <Box>
+                              <Typography
+                                variant="h6"
+                                sx={{
+                                  fontWeight: 600,
+                                  color: 'text.primary',
+                                  mb: 0.5,
+                                  fontSize: '1.125rem'
+                                }}
+                              >
+                                {benefit.title}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: 'text.secondary',
+                                  lineHeight: 1.5
+                                }}
+                              >
+                                {benefit.description}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Card>
+                      </Slide>
+                    ))}
+                  </Box>
+                </Box>
+              </Fade>
             </Box>
 
-            {/* Progress Bar */}
-            <Box sx={{ mb: 4 }}>
-              <LinearProgress
-                variant="determinate"
-                value={progress}
-                sx={{
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor: 'rgba(212, 185, 150, 0.2)',
-                  '& .MuiLinearProgress-bar': {
-                    borderRadius: 4,
-                    background: 'linear-gradient(90deg, #D4B996 0%, #B8A08A 100%)',
-                  }
-                }}
-              />
-              <Typography
-                variant="body2"
-                sx={{
-                  textAlign: 'center',
-                  mt: 1,
-                  color: '#6B6B6B',
-                  fontWeight: 500
-                }}
-              >
-                Étape {currentStep + 1} sur {steps.length}
-              </Typography>
-            </Box>
-
-            {/* Error Alert */}
-            {error && (
-              <Fade in timeout={300}>
-                <Alert 
-                  severity="error" 
-                  sx={{ 
-                    mb: 3,
-                    borderRadius: '12px',
-                    backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                    color: '#d32f2f',
-                    border: '1px solid rgba(244, 67, 54, 0.2)'
+            {/* Right Side - Registration Form */}
+            <Box sx={{ display: 'flex', justifyContent: { xs: 'center', lg: 'flex-end' } }}>
+              <Slide direction="left" in timeout={600}>
+                <Card
+                  sx={{
+                    width: '100%',
+                    maxWidth: '480px',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(139, 115, 85, 0.1)',
+                    borderRadius: '24px',
+                    boxShadow: '0 24px 48px rgba(44, 44, 44, 0.12)',
+                    overflow: 'hidden'
                   }}
                 >
-                  {error}
-                </Alert>
-              </Fade>
-            )}
-
-            {/* Registration Form */}
-            <Box component="form" onSubmit={handleNext} sx={{ mt: 2 }}>
-              <Grow in timeout={500}>
-                <TextField
-                  fullWidth
-                  label={currentStepConfig.label}
-                  name={currentStepConfig.name}
-                  type={currentStepConfig.name === 'password' ? (showPassword ? 'text' : 'password') : currentStepConfig.type}
-                  value={formData[currentStepConfig.name]}
-                  onChange={handleChange}
-                  required
-                  margin="normal"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        {React.createElement(currentStepConfig.icon, { sx: { color: '#D4B996' } })}
-                      </InputAdornment>
-                    ),
-                    endAdornment: currentStepConfig.name === 'password' ? (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                          sx={{ color: '#D4B996' }}
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ) : null,
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      '& fieldset': {
-                        borderColor: 'rgba(212, 185, 150, 0.3)',
-                        borderWidth: '1.5px'
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#D4B996',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#B8A08A',
-                        borderWidth: '2px'
-                      }
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: '#6B6B6B',
-                      '&.Mui-focused': {
-                        color: '#B8A08A'
-                      }
-                    }
-                  }}
-                />
-              </Grow>
-
-              {/* Navigation Buttons */}
-              <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
-                {currentStep > 0 && (
-                  <Button
-                    onClick={handleBack}
-                    variant="outlined"
+                  {/* Card Header */}
+                  <Box
                     sx={{
-                      flex: 1,
-                      py: 1.5,
-                      borderRadius: '16px',
-                      borderColor: '#D4B996',
-                      color: '#2C2C2C',
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      '&:hover': {
-                        borderColor: '#B8A08A',
-                        backgroundColor: 'rgba(212, 185, 150, 0.08)',
+                      background: 'linear-gradient(135deg, #D4AF37 0%, #8B7355 100%)',
+                      p: 4,
+                      textAlign: 'center',
+                      position: 'relative',
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: '1px',
+                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)'
                       }
                     }}
                   >
-                    <ArrowBack sx={{ mr: 1 }} />
-                    Précédent
-                  </Button>
-                )}
-                
+            <Box
+              sx={{
+                        width: 80,
+                        height: 80,
+                borderRadius: '50%',
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        backdropFilter: 'blur(10px)',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3
+              }}
+            >
+                      <PersonAdd sx={{ color: 'white', fontSize: 40 }} />
+            </Box>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                        color: 'white',
+                mb: 1,
+                fontSize: { xs: '1.75rem', sm: '2rem' }
+              }}
+            >
+                      Inscription
+            </Typography>
+                    {fromReservation ? (
+                      <Chip
+                        label="Réservation en cours"
+                        sx={{
+                          background: 'rgba(255, 255, 255, 0.2)',
+                          color: 'white',
+                          fontWeight: 500,
+                          border: '1px solid rgba(255, 255, 255, 0.3)'
+                        }}
+                      />
+                    ) : (
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                          color: 'rgba(255, 255, 255, 0.9)',
+                          fontSize: '1rem'
+                }}
+              >
+                        Créez votre compte She
+              </Typography>
+            )}
+          </Box>
+
+                  <CardContent sx={{ p: 4 }}>
+                    {/* Modern Progress Stepper */}
+          <Box sx={{ mb: 4 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                          Étape {currentStep + 1} sur {steps.length}
+                        </Typography>
+                        <Box sx={{ flexGrow: 1, mx: 2 }}>
+            <LinearProgress 
+              variant="determinate" 
+              value={progress} 
+              sx={{ 
+                              height: 8, 
+                              borderRadius: '4px',
+                              backgroundColor: 'rgba(139, 115, 85, 0.1)',
+                '& .MuiLinearProgress-bar': {
+                                background: 'linear-gradient(135deg, #8B7355 0%, #D4AF37 100%)',
+                                borderRadius: '4px'
+                }
+              }} 
+            />
+                        </Box>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {Math.round(progress)}%
+                        </Typography>
+                      </Box>
+                      
+                      {/* Step Info */}
+                      <Card sx={{ 
+                        p: 2, 
+                        background: 'linear-gradient(135deg, rgba(139, 115, 85, 0.05) 0%, rgba(212, 175, 55, 0.05) 100%)',
+                        border: '1px solid rgba(139, 115, 85, 0.1)'
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Box
+              sx={{ 
+                              width: 40,
+                              height: 40,
+                              borderRadius: '50%',
+                              background: 'linear-gradient(135deg, #8B7355 0%, #D4AF37 100%)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'white'
+                            }}
+                          >
+                            <IconComponent sx={{ fontSize: 20 }} />
+                          </Box>
+                          <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
+                              {currentStepConfig.label}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+                              {currentStepConfig.description}
+            </Typography>
+                          </Box>
+                        </Box>
+                      </Card>
+          </Box>
+
+          {/* Error Alert */}
+          {error && (
+                      <Fade in>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 3, 
+                            borderRadius: '12px',
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                '& .MuiAlert-message': {
+                              color: '#DC2626',
+                  fontWeight: 500
+                }
+              }}
+            >
+              {error}
+            </Alert>
+                      </Fade>
+          )}
+
+          {/* Form */}
+          <Box component="form" onSubmit={handleNext}>
+            <TextField
+              fullWidth
+              label={currentStepConfig.label}
+              name={currentStepConfig.name}
+              type={currentStepConfig.type === 'password' && showPassword ? 'text' : currentStepConfig.type}
+              value={formData[currentStepConfig.name]}
+              onChange={handleChange}
+              required
+              autoFocus
+                        sx={{ mb: 4 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                              <IconComponent sx={{ color: 'primary.main' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: currentStepConfig.type === 'password' ? (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                                sx={{ color: 'text.secondary' }}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ) : null
+              }}
+            />
+
+            {/* Navigation Buttons */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              gap: 2,
+              mb: 3
+            }}>
+              {currentStep > 0 ? (
                 <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={loading}
-                  sx={{
-                    flex: 1,
+                  variant="outlined"
+                  onClick={handleBack}
+                  startIcon={<ArrowBack />}
+                  sx={{ 
+                              borderRadius: '50px',
+                    px: 3,
                     py: 1.5,
-                    borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
-                    color: '#2C2C2C',
-                    fontWeight: 600,
-                    fontSize: '1.1rem',
+                              borderColor: 'primary.main',
+                              color: 'primary.main',
                     textTransform: 'none',
-                    boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    fontWeight: 500,
+                              borderWidth: '2px',
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
-                      transform: 'translateY(-2px) scale(1.02)',
-                      boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
-                    },
-                    '&:disabled': {
-                      background: 'rgba(212, 185, 150, 0.3)',
-                      color: 'rgba(44, 44, 44, 0.5)'
+                                borderColor: 'primary.dark',
+                                background: 'rgba(139, 115, 85, 0.05)',
+                                borderWidth: '2px'
                     }
                   }}
                 >
-                  {loading ? 'Inscription...' : (isLastStep ? 'S\'inscrire' : 'Suivant')}
-                  {!isLastStep && <ArrowForward sx={{ ml: 1 }} />}
+                  Retour
                 </Button>
-              </Box>
-            </Box>
-
-            {/* Login Link */}
-            <Box sx={{ textAlign: 'center', mt: 4, pt: 3, borderTop: '1px solid rgba(212, 185, 150, 0.2)' }}>
-              <Typography variant="body2" sx={{ color: '#6B6B6B' }}>
-                Déjà un compte ?{' '}
-                <MuiLink
+              ) : (
+                <Button
                   component={Link}
                   to="/login"
-                  sx={{
-                    color: '#D4B996',
-                    textDecoration: 'none',
-                    fontWeight: 600,
+                            variant="text"
+                  sx={{ 
+                              borderRadius: '50px',
+                    px: 3,
+                    py: 1.5,
+                              color: 'text.secondary',
+                    textTransform: 'none',
+                    fontWeight: 500,
                     '&:hover': {
-                      color: '#B8A08A',
-                      textDecoration: 'underline'
+                                background: 'rgba(139, 115, 85, 0.05)'
                     }
                   }}
                 >
-                  Se connecter
-                </MuiLink>
-              </Typography>
+                            Déjà inscrit ?
+                </Button>
+              )}
+
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading}
+                          endIcon={!loading && (isLastStep ? <CheckCircle /> : <ArrowForward />)}
+                sx={{ 
+                            borderRadius: '50px',
+                  px: 4,
+                            py: 2,
+                            minWidth: 160,
+                            background: 'linear-gradient(135deg, #8B7355 0%, #D4AF37 100%)',
+                            color: 'white',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                            fontSize: '1rem',
+                            boxShadow: '0 8px 24px rgba(139, 115, 85, 0.3)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            '&::before': {
+                              content: '""',
+                              position: 'absolute',
+                              top: 0,
+                              left: '-100%',
+                              width: '100%',
+                              height: '100%',
+                              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                              transition: 'left 0.5s ease'
+                            },
+                  '&:hover': {
+                              background: 'linear-gradient(135deg, #6B5842 0%, #B8941F 100%)',
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 12px 32px rgba(139, 115, 85, 0.4)',
+                              '&::before': {
+                                left: '100%'
+                              }
+                  },
+                  '&:disabled': {
+                              background: '#E5E0D8',
+                              color: '#8A8A8A',
+                              transform: 'none',
+                              boxShadow: 'none'
+                            }
+                          }}
+                        >
+                          {loading ? 'Inscription...' : (isLastStep ? "Créer le compte" : 'Suivant')}
+              </Button>
             </Box>
-          </Paper>
-        </Slide>
+
+                      {/* Login Link */}
+                      <Box textAlign="center" sx={{ pt: 2, borderTop: '1px solid rgba(139, 115, 85, 0.1)' }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                            color: 'text.secondary',
+                            mb: 2,
+                            fontSize: '0.95rem'
+                }}
+              >
+                Vous avez déjà un compte ?
+              </Typography>
+                        <Button
+                component={Link} 
+                to="/login" 
+                          variant="text"
+                sx={{ 
+                            color: 'primary.main',
+                            fontWeight: 600,
+                  textDecoration: 'none',
+                  fontSize: '0.95rem',
+                            textTransform: 'none',
+                  '&:hover': {
+                              background: 'rgba(139, 115, 85, 0.05)'
+                            }
+                          }}
+                        >
+                          Se connecter
+                        </Button>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Slide>
+            </Box>
+          </Box>
+        </Box>
       </Container>
     </Box>
   );

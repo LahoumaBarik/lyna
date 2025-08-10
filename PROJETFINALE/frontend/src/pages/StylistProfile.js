@@ -1,12 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { stylists as allStylists } from '../data/stylists'; // Import local data
-import { Box, Container, Typography, CircularProgress, Grid, List, ListItem, ListItemIcon } from '@mui/material';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import './StylistProfile.css';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  CircularProgress, 
+  Grid, 
+  List, 
+  ListItem, 
+  ListItemIcon,
+  Card,
+  CardContent,
+  Avatar,
+  Chip,
+  Fade,
+  Slide,
+  IconButton
+} from '@mui/material';
+import {
+  CheckCircleOutline,
+  Star,
+  ArrowBack,
+  AutoAwesome,
+  Verified,
+  Palette,
+  TipsAndUpdates
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 const StylistProfilePage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [stylist, setStylist] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,17 +44,38 @@ const StylistProfilePage = () => {
 
   if (loading) {
     return (
-      <Box className="stylist-profile-page" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <CircularProgress color="inherit" />
+      <Box 
+        sx={{ 
+          minHeight: '100vh',
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 50%, #F0EDE7 100%)'
+        }}
+      >
+        <CircularProgress sx={{ color: 'primary.main' }} />
       </Box>
     );
   }
 
   if (!stylist) {
     return (
-      <Box className="stylist-profile-page">
+      <Box 
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 50%, #F0EDE7 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
         <Container sx={{ textAlign: 'center', py: 8 }}>
-          <Typography variant="h5">Styliste non trouvé.</Typography>
+          <Typography variant="h5" sx={{ color: 'text.primary', mb: 2 }}>
+            Styliste non trouvé
+          </Typography>
+          <IconButton onClick={() => navigate('/equipe')} sx={{ color: 'primary.main' }}>
+            <ArrowBack />
+          </IconButton>
         </Container>
       </Box>
     );

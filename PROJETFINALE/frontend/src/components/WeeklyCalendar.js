@@ -20,7 +20,10 @@ import {
   IconButton,
   Tooltip,
   Card,
-  CardContent
+  CardContent,
+  Fade,
+  Slide,
+  Divider
 } from '@mui/material';
 import { 
   Add, 
@@ -29,7 +32,10 @@ import {
   Schedule, 
   ArrowBack, 
   ArrowForward, 
-  Today 
+  Today,
+  CalendarMonth,
+  AccessTime,
+  AutoAwesome
 } from '@mui/icons-material';
 import axios from 'axios';
 

@@ -34,10 +34,10 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  Avatar,
   Fade,
   Slide,
-  Grow,
-  Avatar
+  Grow
 } from '@mui/material';
 import {
   Schedule,
@@ -54,8 +54,12 @@ import {
   Email,
   Phone,
   LocationOn,
+  Dashboard,
+  TrendingUp,
+  AutoAwesome,
   AccessTime,
-  ContentCut
+  EventNote,
+  Verified
 } from '@mui/icons-material';
 import WeeklyCalendar from '../components/WeeklyCalendar';
 import axios from 'axios';
@@ -105,7 +109,10 @@ function DashboardCoiffeuse() {
         phone: user.phone || '',
         description: user.stylistInfo?.description || '',
         specializations: user.stylistInfo?.specializations || [],
-        experience: user.stylistInfo?.experience || { years: '', description: '' }
+        experience: {
+          years: user.stylistInfo?.experience?.years || '',
+          description: user.stylistInfo?.experience?.description || ''
+        }
       });
     }
   };
@@ -114,12 +121,20 @@ function DashboardCoiffeuse() {
     try {
       setAppointmentsLoading(true);
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('/reservations/stylist', {
+      const response = await axios.get('/reservations', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setAppointments(response.data.data || response.data || []);
-    } catch (err) {
-      console.error('Error fetching appointments:', err);
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to fetch appointments');
+      }
+      
+      const data = response.data;
+      // Handle both array response (no pagination) and object response (with pagination)
+      const reservations = Array.isArray(data) ? data : (data.reservations || []);
+      setAppointments(reservations);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
       setError('Erreur lors du chargement des rendez-vous');
     } finally {
       setAppointmentsLoading(false);
@@ -129,53 +144,67 @@ function DashboardCoiffeuse() {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('/analytics/stylist', {
+      const response = await axios.get('/analytics/stylist-stats', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setStats(response.data.data || response.data || {
-        totalAppointments: 0,
-        completedAppointments: 0,
-        upcomingAppointments: 0,
-        averageRating: 0
-      });
-    } catch (err) {
-      console.error('Error fetching stats:', err);
+      
+      if (response.status === 200) {
+        const data = response.data;
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
     }
   };
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
     try {
+      setLoading(true);
       const token = localStorage.getItem('accessToken');
-      const response = await axios.put('/users/profile', profileForm, {
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await axios.put('/users/me', {
+        firstName: profileForm.firstName,
+        lastName: profileForm.lastName,
+        phone: profileForm.phone,
+        stylistInfo: {
+          description: profileForm.description,
+          specializations: profileForm.specializations,
+          experience: profileForm.experience
+        }
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
       });
-
-      if (response.data.success) {
+      
+      if (response.status !== 200) {
+        const errorData = response.data;
+        throw new Error(errorData.message || 'Failed to update profile');
+      }
+      
+      const result = response.data;
       setSuccess('Profil mis à jour avec succès');
       setProfileDialogOpen(false);
-        // Refresh user data if needed
-      } else {
-        setError(response.data.error || 'Erreur lors de la mise à jour du profil');
+      
+      // Update the user context with new data
+      if (result.user) {
+        // You might want to update the auth context here if you have a way to refresh user data
+        console.log('Profile updated successfully:', result.user);
       }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de la mise à jour du profil');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setError(error.message || 'Erreur lors de la mise à jour du profil');
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
       weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      month: 'long'
     });
   };
 
@@ -184,11 +213,11 @@ function DashboardCoiffeuse() {
     const appointmentDate = new Date(appointment.date);
     
     if (appointmentDate < now) {
-      return { status: 'completed', label: 'Terminé', color: '#4caf50' };
+      return { status: 'completed', label: 'Terminé', color: 'success' };
     } else if (appointmentDate.getTime() - now.getTime() < 24 * 60 * 60 * 1000) {
-      return { status: 'upcoming', label: 'Aujourd\'hui', color: '#ff9800' };
+      return { status: 'upcoming', label: 'Aujourd\'hui', color: 'warning' };
     } else {
-      return { status: 'scheduled', label: 'Programmé', color: '#2196f3' };
+      return { status: 'scheduled', label: 'Programmé', color: 'info' };
     }
   };
 
@@ -196,648 +225,531 @@ function DashboardCoiffeuse() {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 100%)',
-        pt: { xs: 10, sm: 12 },
-        pb: 4
+        background: 'linear-gradient(135deg, #FDFCFA 0%, #F8F6F2 50%, #F0EDE7 100%)',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23D4AF37" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+          opacity: 0.4
+        }
       }}
     >
-      <Container maxWidth="lg">
-        {/* Success/Error Alerts */}
+      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2, pt: { xs: 12, sm: 14 }, pb: 6 }}>
+        {/* Modern Header */}
+        <Fade in timeout={600}>
+          <Card
+            sx={{
+              borderRadius: '24px',
+              background: 'linear-gradient(135deg, #8B7355 0%, #D4AF37 100%)',
+              color: 'white',
+              mb: 6,
+              overflow: 'hidden',
+              position: 'relative',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)'
+              }
+            }}
+          >
+            <CardContent sx={{ p: { xs: 4, md: 6 } }}>
+              <Grid container spacing={4} alignItems="center">
+                <Grid item xs={12} md={8}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <Avatar
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        backdropFilter: 'blur(10px)',
+                        border: '3px solid rgba(255, 255, 255, 0.3)',
+                        fontSize: '2rem',
+                        fontWeight: 700
+                      }}
+                    >
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, fontSize: { xs: '1.75rem', md: '2.5rem' } }}>
+                        Bonjour, {user?.firstName} !
+                      </Typography>
+                      <Chip
+                        icon={<Verified />}
+                        label="Styliste Professionnel"
+                        sx={{
+                          background: 'rgba(255, 255, 255, 0.2)',
+                          backdropFilter: 'blur(10px)',
+                          color: 'white',
+                          fontWeight: 600,
+                          mb: 1
+                        }}
+                      />
+                      <Typography variant="body1" sx={{ opacity: 0.9, mt: 1 }}>
+                        Gérez vos rendez-vous et votre agenda professionnel
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ display: 'flex', justifyContent: { xs: 'center', md: 'flex-end' } }}>
+                    <Button
+                      variant="contained"
+                      startIcon={<Edit />}
+                      onClick={() => setProfileDialogOpen(true)}
+                      sx={{
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        color: 'white',
+                        fontWeight: 600,
+                        '&:hover': {
+                          background: 'rgba(255, 255, 255, 0.3)',
+                          transform: 'translateY(-2px)'
+                        }
+                      }}
+                    >
+                      Modifier le profil
+                    </Button>
+                  </Box>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Fade>
+
+        {/* Alerts */}
+        {error && (
+          <Fade in>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 4, 
+                borderRadius: '12px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                '& .MuiAlert-message': {
+                  color: '#DC2626',
+                  fontWeight: 500
+                }
+              }} 
+              onClose={() => setError('')}
+            >
+              {error}
+            </Alert>
+          </Fade>
+        )}
+
         {success && (
-          <Fade in timeout={300}>
+          <Fade in>
             <Alert 
               severity="success" 
               sx={{ 
-                mb: 3,
+                mb: 4, 
                 borderRadius: '12px',
-                backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                color: '#2e7d32',
-                border: '1px solid rgba(76, 175, 80, 0.2)'
-              }}
+                background: 'rgba(76, 175, 80, 0.1)',
+                border: '1px solid rgba(76, 175, 80, 0.2)',
+                '& .MuiAlert-message': {
+                  color: '#2E7D32',
+                  fontWeight: 500
+                }
+              }} 
               onClose={() => setSuccess('')}
             >
               {success}
             </Alert>
           </Fade>
         )}
-      {error && (
-          <Fade in timeout={300}>
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 3,
-                borderRadius: '12px',
-                backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                color: '#d32f2f',
-                border: '1px solid rgba(244, 67, 54, 0.2)'
-              }}
-              onClose={() => setError('')}
-            >
-          {error}
-        </Alert>
-          </Fade>
-        )}
 
-        {/* Header */}
-        <Slide direction="down" in timeout={800}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 4,
-              mb: 4,
-              borderRadius: '16px',
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 246, 242, 0.95) 100%)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(212, 185, 150, 0.2)',
-              textAlign: 'center',
-              boxShadow: '0px 8px 32px rgba(44, 44, 44, 0.08)'
-            }}
-          >
-            <Avatar
-              sx={{
-                width: 80,
-                height: 80,
-                mx: 'auto',
-                mb: 2,
-                background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
-                fontSize: '2rem',
-                fontWeight: 600,
-                boxShadow: '0px 4px 12px rgba(212, 185, 150, 0.3)'
-              }}
-            >
-              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-            </Avatar>
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 700,
-                color: '#2C2C2C',
-                mb: 1,
-                letterSpacing: '-0.02em'
-              }}
-            >
-              Bienvenue, {user?.firstName} !
-            </Typography>
-            <Typography
-              variant="h6"
-              sx={{
-                color: '#6B6B6B',
-                fontWeight: 400,
-                fontSize: '1.1rem'
-              }}
-            >
-              Tableau de bord Coiffeuse
-            </Typography>
-          </Paper>
-        </Slide>
-
-      {/* Stats Cards */}
-        <Grow in timeout={1000}>
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+        {/* Modern Stats Cards */}
+        <Slide direction="up" in timeout={800}>
+          <Grid container spacing={4} sx={{ mb: 6 }}>
+            <Grid item xs={12} sm={6} md={3}>
               <Card
-                elevation={0}
                 sx={{
-                  borderRadius: '16px',
+                  borderRadius: '20px',
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(212, 185, 150, 0.2)',
-                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  border: '1px solid rgba(139, 115, 85, 0.1)',
+                  boxShadow: '0 12px 24px rgba(44, 44, 44, 0.08)',
+                  transition: 'all 0.3s ease',
                   '&:hover': {
                     transform: 'translateY(-4px)',
-                    boxShadow: '0px 8px 16px rgba(44, 44, 44, 0.12)'
+                    boxShadow: '0 20px 40px rgba(44, 44, 44, 0.12)'
                   }
                 }}
               >
-                <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center">
+                <CardContent sx={{ p: 4 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                     <Box
                       sx={{
-                        p: 2,
-                        borderRadius: '12px',
-                        background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
-                        mr: 2
+                        width: 56,
+                        height: 56,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #8B7355 0%, #D4AF37 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
-                      <CalendarToday sx={{ color: '#2C2C2C', fontSize: 24 }} />
+                      <CalendarToday sx={{ color: 'white', fontSize: 28 }} />
                     </Box>
-                <Box>
-                      <Typography variant="h4" sx={{ fontWeight: 700, color: '#2C2C2C' }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
                         {stats.totalAppointments}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
-                    Total Rendez-vous
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                        Total Rendez-vous
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
               <Card
-                elevation={0}
                 sx={{
-                  borderRadius: '16px',
+                  borderRadius: '20px',
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(212, 185, 150, 0.2)',
-                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  border: '1px solid rgba(139, 115, 85, 0.1)',
+                  boxShadow: '0 12px 24px rgba(44, 44, 44, 0.08)',
+                  transition: 'all 0.3s ease',
                   '&:hover': {
                     transform: 'translateY(-4px)',
-                    boxShadow: '0px 8px 16px rgba(44, 44, 44, 0.12)'
+                    boxShadow: '0 20px 40px rgba(44, 44, 44, 0.12)'
                   }
                 }}
               >
-                <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center">
+                <CardContent sx={{ p: 4 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                     <Box
                       sx={{
-                        p: 2,
-                        borderRadius: '12px',
-                        background: 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)',
-                        mr: 2
+                        width: 56,
+                        height: 56,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
-                      <CheckCircle sx={{ color: '#FFFFFF', fontSize: 24 }} />
+                      <CheckCircle sx={{ color: 'white', fontSize: 28 }} />
                     </Box>
-                <Box>
-                      <Typography variant="h4" sx={{ fontWeight: 700, color: '#2C2C2C' }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
                         {stats.completedAppointments}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
-                    Terminés
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                        Terminés
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
               <Card
-                elevation={0}
                 sx={{
-                  borderRadius: '16px',
+                  borderRadius: '20px',
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(212, 185, 150, 0.2)',
-                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  border: '1px solid rgba(139, 115, 85, 0.1)',
+                  boxShadow: '0 12px 24px rgba(44, 44, 44, 0.08)',
+                  transition: 'all 0.3s ease',
                   '&:hover': {
                     transform: 'translateY(-4px)',
-                    boxShadow: '0px 8px 16px rgba(44, 44, 44, 0.12)'
+                    boxShadow: '0 20px 40px rgba(44, 44, 44, 0.12)'
                   }
                 }}
               >
-                <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center">
+                <CardContent sx={{ p: 4 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                     <Box
                       sx={{
-                        p: 2,
-                        borderRadius: '12px',
-                        background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
-                        mr: 2
+                        width: 56,
+                        height: 56,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
-                      <Schedule sx={{ color: '#FFFFFF', fontSize: 24 }} />
+                      <AccessTime sx={{ color: 'white', fontSize: 28 }} />
                     </Box>
-                <Box>
-                      <Typography variant="h4" sx={{ fontWeight: 700, color: '#2C2C2C' }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
                         {stats.upcomingAppointments}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
-                    À venir
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                        À venir
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
               <Card
-                elevation={0}
                 sx={{
-                  borderRadius: '16px',
+                  borderRadius: '20px',
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(212, 185, 150, 0.2)',
-                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  border: '1px solid rgba(139, 115, 85, 0.1)',
+                  boxShadow: '0 12px 24px rgba(44, 44, 44, 0.08)',
+                  transition: 'all 0.3s ease',
                   '&:hover': {
                     transform: 'translateY(-4px)',
-                    boxShadow: '0px 8px 16px rgba(44, 44, 44, 0.12)'
+                    boxShadow: '0 20px 40px rgba(44, 44, 44, 0.12)'
                   }
                 }}
               >
-                <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center">
+                <CardContent sx={{ p: 4 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                     <Box
                       sx={{
-                        p: 2,
-                        borderRadius: '12px',
-                        background: 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)',
-                        mr: 2
+                        width: 56,
+                        height: 56,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #EF4444 0%, #F87171 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
-                      <Star sx={{ color: '#2C2C2C', fontSize: 24 }} />
+                      <Star sx={{ color: 'white', fontSize: 28 }} />
                     </Box>
-                <Box>
-                      <Typography variant="h4" sx={{ fontWeight: 700, color: '#2C2C2C' }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
                         {stats.averageRating.toFixed(1)}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
-                    Note moyenne
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-        </Grow>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                        Note moyenne
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Slide>
 
       <Grid container spacing={3}>
         {/* Weekly Calendar */}
         <Grid item xs={12}>
-            <Grow in timeout={1200}>
-              <Paper
-                elevation={0}
-                sx={{
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(212, 185, 150, 0.2)',
-                  overflow: 'hidden',
-                  p: 3,
-                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
-                }}
-              >
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 3 }}>
-                  <CalendarToday sx={{ mr: 1, color: '#D4B996' }} />
-                  Calendrier Hebdomadaire
-                </Typography>
           <WeeklyCalendar user={user} />
-              </Paper>
-            </Grow>
         </Grid>
 
         {/* Appointments */}
         <Grid item xs={12} md={6}>
-            <Grow in timeout={1400}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3,
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(212, 185, 150, 0.2)',
-                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
-                }}
-              >
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C', mb: 3 }}>
+          <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c', mb: 3 }}>
               <CalendarToday sx={{ mr: 1, color: '#D4B996' }} />
               Rendez-vous à venir
             </Typography>
 
             {appointmentsLoading ? (
               <Box display="flex" justifyContent="center" py={4}>
-                    <CircularProgress sx={{ color: '#D4B996' }} />
+                <CircularProgress />
               </Box>
             ) : appointments.length === 0 ? (
-                  <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <Typography variant="h6" sx={{ color: '#6B6B6B', mb: 1 }}>
+              <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
                 Aucun rendez-vous à venir
               </Typography>
-                    <Typography variant="body1" sx={{ color: '#8A857C' }}>
-                      Votre planning est libre pour le moment
-                    </Typography>
-                  </Box>
             ) : (
               <List>
-                    {appointments.slice(0, 5).map((appointment, index) => {
+                {appointments.slice(0, 5).map((appointment) => {
                   const status = getAppointmentStatus(appointment);
                   return (
-                        <Grow in timeout={800 + index * 200} key={appointment._id}>
-                          <ListItem 
-                            divider
-                            sx={{
-                              borderRadius: '12px',
-                              mb: 1,
-                              background: 'rgba(248, 246, 242, 0.5)',
-                              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                              '&:hover': {
-                                background: 'rgba(248, 246, 242, 0.8)',
-                                transform: 'translateX(4px)'
-                              }
-                            }}
-                          >
+                    <ListItem key={appointment._id} divider>
                       <ListItemIcon>
-                              <Box
-                                sx={{
-                                  p: 1,
-                                  borderRadius: '8px',
-                                  background: `linear-gradient(135deg, ${status.color} 0%, ${status.color}80 100%)`
-                                }}
-                              >
-                                <CalendarToday sx={{ color: '#FFFFFF', fontSize: 20 }} />
-                              </Box>
+                        <CalendarToday color={status.color} />
                       </ListItemIcon>
                       <ListItemText
-                              primary={
-                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
-                                  {appointment.client?.firstName} {appointment.client?.lastName}
-                                </Typography>
-                              }
+                        primary={`${appointment.client?.firstName} ${appointment.client?.lastName}`}
                         secondary={
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                                  <ContentCut sx={{ color: '#D4B996', fontSize: 16 }} />
-                                  <Typography variant="body2" sx={{ color: '#6B6B6B' }}>
+                          <>
                             {appointment.service?.name} - {formatDate(appointment.date)} à {appointment.startTime || appointment.heure || 'N/A'}
-                                  </Typography>
-                                </Box>
+                          </>
                         }
                       />
                       <Chip
                         label={status.label}
-                              sx={{
-                                backgroundColor: status.color,
-                                color: '#FFFFFF',
-                                fontWeight: 600,
-                                borderRadius: '8px'
-                              }}
+                        color={status.color}
                         size="small"
+                        sx={{ ml: 1 }}
                       />
                     </ListItem>
-                        </Grow>
                   );
                 })}
               </List>
             )}
           </Paper>
-            </Grow>
         </Grid>
 
         {/* Profile Section */}
         <Grid item xs={12} md={6}>
-            <Grow in timeout={1600}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3,
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(212, 185, 150, 0.2)',
-                  boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.06)'
-                }}
-              >
+          <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                  <Typography variant="h5" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c2c2c' }}>
                 <Person sx={{ mr: 1, color: '#D4B996' }} />
                 Mon profil
               </Typography>
               <Button
-                    variant="contained"
+                variant="outlined"
                 onClick={() => setProfileDialogOpen(true)}
-                    sx={{
-                      background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
-                      color: '#2C2C2C',
-                      fontWeight: 600,
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      boxShadow: '0px 4px 8px rgba(44, 44, 44, 0.08)',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
-                        transform: 'translateY(-2px) scale(1.02)',
-                        boxShadow: '0px 8px 32px rgba(166, 124, 82, 0.18)',
-                      }
-                    }}
-                  >
-                    <Edit sx={{ mr: 1 }} />
+                sx={{ borderColor: '#D4B996', color: '#D4B996' }}
+              >
                 Modifier
               </Button>
             </Box>
 
-                <Grid container spacing={2}>
+            <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', p: 2, background: 'rgba(248, 246, 242, 0.5)', borderRadius: '12px', mb: 2 }}>
-                      <Person sx={{ mr: 1, color: '#D4B996' }} />
-                      <Box>
-                        <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
-                          Nom complet
-                        </Typography>
-                        <Typography variant="body1" sx={{ color: '#2C2C2C', fontWeight: 600 }}>
-                          {user?.firstName} {user?.lastName}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', p: 2, background: 'rgba(248, 246, 242, 0.5)', borderRadius: '12px', mb: 2 }}>
-                      <Email sx={{ mr: 1, color: '#D4B996' }} />
-                      <Box>
-                        <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
-                          Email
-                        </Typography>
-                        <Typography variant="body1" sx={{ color: '#2C2C2C', fontWeight: 600 }}>
-                          {user?.email}
-                        </Typography>
-                      </Box>
-                    </Box>
+                <List>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Person />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Nom complet"
+                      secondary={`${user?.firstName} ${user?.lastName}`}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Email />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Email"
+                      secondary={user?.email}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Phone />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Téléphone"
+                      secondary={user?.phone || 'Non fourni'}
+                    />
+                  </ListItem>
+                </List>
               </Grid>
               <Grid item xs={12} md={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', p: 2, background: 'rgba(248, 246, 242, 0.5)', borderRadius: '12px', mb: 2 }}>
-                      <Phone sx={{ mr: 1, color: '#D4B996' }} />
-                      <Box>
-                        <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
-                          Téléphone
-                        </Typography>
-                        <Typography variant="body1" sx={{ color: '#2C2C2C', fontWeight: 600 }}>
-                          {user?.phone || 'Non fourni'}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', p: 2, background: 'rgba(248, 246, 242, 0.5)', borderRadius: '12px', mb: 2 }}>
-                      <Work sx={{ mr: 1, color: '#D4B996' }} />
-                      <Box>
-                        <Typography variant="body2" sx={{ color: '#6B6B6B', fontWeight: 500 }}>
-                          Spécialisations
-                        </Typography>
-                        <Typography variant="body1" sx={{ color: '#2C2C2C', fontWeight: 600 }}>
-                          {user?.stylistInfo?.specializations?.join(', ') || 'Aucune'}
-                        </Typography>
-                      </Box>
-                    </Box>
+                <List>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Work />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Expérience"
+                      secondary={`${user?.stylistInfo?.experience?.years || 0} ans`}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Star />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Spécialisations"
+                      secondary={user?.stylistInfo?.specializations?.join(', ') || 'Aucune'}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Info />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Description"
+                      secondary={user?.stylistInfo?.description || 'Aucune description'}
+                    />
+                  </ListItem>
+                </List>
               </Grid>
             </Grid>
           </Paper>
-            </Grow>
         </Grid>
       </Grid>
 
       {/* Profile Dialog */}
-        <Dialog
-          open={profileDialogOpen}
-          onClose={() => setProfileDialogOpen(false)}
-          maxWidth="md"
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: '16px',
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(212, 185, 150, 0.2)',
-              boxShadow: '0px 8px 32px rgba(44, 44, 44, 0.15)'
-            }
-          }}
-        >
-          <DialogTitle>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2C2C2C' }}>
-              Modifier mon profil
-            </Typography>
-          </DialogTitle>
+      <Dialog open={profileDialogOpen} onClose={() => setProfileDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Modifier mon profil</DialogTitle>
+        <form onSubmit={handleProfileSubmit}>
           <DialogContent>
-            <Box component="form" onSubmit={handleProfileSubmit} sx={{ mt: 2 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Prénom"
-                    name="firstName"
                   value={profileForm.firstName}
-                    onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        '& fieldset': {
-                          borderColor: 'rgba(212, 185, 150, 0.3)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#D4B996',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#B8A08A',
-                          borderWidth: '2px'
-                        }
-                      }
-                    }}
+                  onChange={(e) => setProfileForm(prev => ({ ...prev, firstName: e.target.value }))}
+                  required
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Nom"
-                    name="lastName"
                   value={profileForm.lastName}
-                    onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        '& fieldset': {
-                          borderColor: 'rgba(212, 185, 150, 0.3)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#D4B996',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#B8A08A',
-                          borderWidth: '2px'
-                        }
-                      }
-                    }}
+                  onChange={(e) => setProfileForm(prev => ({ ...prev, lastName: e.target.value }))}
+                  required
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Téléphone"
-                    name="phone"
                   value={profileForm.phone}
-                    onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        '& fieldset': {
-                          borderColor: 'rgba(212, 185, 150, 0.3)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#D4B996',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#B8A08A',
-                          borderWidth: '2px'
-                        }
-                      }
-                    }}
+                  onChange={(e) => setProfileForm(prev => ({ ...prev, phone: e.target.value }))}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   multiline
-                    rows={4}
+                  rows={3}
                   label="Description"
-                    name="description"
                   value={profileForm.description}
-                    onChange={(e) => setProfileForm({...profileForm, description: e.target.value})}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        '& fieldset': {
-                          borderColor: 'rgba(212, 185, 150, 0.3)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#D4B996',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#B8A08A',
-                          borderWidth: '2px'
-                        }
-                      }
-                    }}
+                  onChange={(e) => setProfileForm(prev => ({ ...prev, description: e.target.value }))}
+                  helperText="Décrivez votre style et expertise"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Années d'expérience"
+                  value={profileForm.experience.years}
+                  onChange={(e) => setProfileForm(prev => ({ 
+                    ...prev, 
+                    experience: { ...prev.experience, years: e.target.value }
+                  }))}
                 />
               </Grid>
             </Grid>
-            </Box>
           </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button
-              onClick={() => setProfileDialogOpen(false)}
-              sx={{
-                color: '#6B6B6B',
-                '&:hover': {
-                  backgroundColor: 'rgba(212, 185, 150, 0.1)'
-                }
-              }}
-            >
+          <DialogActions>
+            <Button onClick={() => setProfileDialogOpen(false)}>
               Annuler
             </Button>
-            <Button
-              onClick={handleProfileSubmit}
-              variant="contained"
-              disabled={loading}
-              sx={{
-                background: 'linear-gradient(135deg, #D4B996 0%, #B8A08A 100%)',
-                color: '#2C2C2C',
-                fontWeight: 600,
-                borderRadius: '12px',
-                textTransform: 'none',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #B8A08A 0%, #A08F7A 100%)',
-                  transform: 'translateY(-1px)'
-                }
-              }}
-            >
-              {loading ? 'Sauvegarde...' : 'Sauvegarder'}
+            <Button type="submit" variant="contained" disabled={loading}>
+              {loading ? <CircularProgress size={20} /> : 'Sauvegarder'}
             </Button>
           </DialogActions>
+        </form>
       </Dialog>
-    </Container>
+      </Container>
     </Box>
   );
 }

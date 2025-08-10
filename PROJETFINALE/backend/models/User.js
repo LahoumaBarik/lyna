@@ -89,17 +89,14 @@ const userSchema = new mongoose.Schema({
     enum: ['male', 'female', 'other', 'prefer_not_to_say']
   },
   address: {
-    type: {
-      street: String,
-      city: String,
-      state: String,
-      zipCode: String,
-      country: {
-        type: String,
-        default: 'US'
-      }
-    },
-    default: undefined
+    street: String,
+    city: String,
+    state: String,
+    zipCode: String,
+    country: {
+      type: String,
+      default: 'US'
+    }
   },
   
   // Enhanced stylist information

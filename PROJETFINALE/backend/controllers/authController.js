@@ -422,15 +422,29 @@ exports.updateProfile = async (req, res) => {
     });
 
     // Handle address field transformation
-    if (updates.address && typeof updates.address === 'string') {
-      // Transform string address into object format
-      updates.address = {
-        street: updates.address,
-        city: '',
-        state: '',
-        zipCode: '',
-        country: 'US'
-      };
+    if (updates.address) {
+      if (typeof updates.address === 'string') {
+        // Transform string address into object format
+        updates.address = {
+          street: updates.address,
+          city: '',
+          state: '',
+          zipCode: '',
+          country: 'US'
+        };
+      } else if (typeof updates.address === 'object' && updates.address !== null) {
+        // Ensure all address fields are strings and handle empty values
+        updates.address = {
+          street: updates.address.street || '',
+          city: updates.address.city || '',
+          state: updates.address.state || '',
+          zipCode: updates.address.zipCode || '',
+          country: updates.address.country || 'US'
+        };
+      } else {
+        // Remove address if it's null, undefined, or invalid
+        delete updates.address;
+      }
     }
 
     const user = await User.findByIdAndUpdate(

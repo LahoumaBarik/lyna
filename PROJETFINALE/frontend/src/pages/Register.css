@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+.soft-register-bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f6f2 0%, #e3caa5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.register-soft-form {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(176, 137, 104, 0.15);
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(227, 202, 165, 0.2);
+}
+
+.register-soft-title {
+  text-align: center;
+  color: #7f5539;
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 2.5rem;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+.register-soft-title::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #b08968, #e3caa5);
+  border-radius: 2px;
+}
+
+.register-soft-form .form-group {
+  width: 100%;
+  margin-bottom: 1.8rem;
+  position: relative;
+}
+
+.register-soft-form input {
+  width: 100%;
+  padding: 1.2rem 1.5rem;
+  border: 2px solid #e3caa5;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  background: #fff;
+  color: #7f5539;
+  transition: all 0.3s ease;
+  font-family: 'Montserrat', sans-serif;
+  outline: none;
+  box-shadow: 0 4px 12px rgba(176, 137, 104, 0.08);
+}
+
+.register-soft-form input:focus {
+  border-color: #b08968;
+  box-shadow: 0 0 0 4px rgba(176, 137, 104, 0.1);
+  transform: translateY(-2px);
+}
+
+.register-soft-form label {
+  position: absolute;
+  left: 1.2rem;
+  top: 1.2rem;
+  color: #b08968;
+  font-weight: 500;
+  font-size: 1.1rem;
+  font-family: 'Montserrat', sans-serif;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  padding: 0 0.4rem;
+  background: #fff;
+}
+
+.register-soft-form input:focus + label,
+.register-soft-form input:not(:placeholder-shown) + label {
+  top: -0.7rem;
+  left: 1rem;
+  font-size: 0.9rem;
+  color: #7f5539;
+  font-weight: 600;
+  background: #fff;
+}
+
+.register-soft-actions {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.register-button {
+  width: 100%;
+  padding: 1.2rem;
+  background: linear-gradient(135deg, #b08968 0%, #7f5539 100%);
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(176, 137, 104, 0.2);
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: 0.5s;
+}
+
+.register-button:hover::before {
+  left: 100%;
+}
+
+.register-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(176, 137, 104, 0.25);
+  background: linear-gradient(135deg, #7f5539 0%, #b08968 100%);
+}
+
+.register-button:active {
+  transform: translateY(0);
+  box-shadow: 0 5px 15px rgba(176, 137, 104, 0.15);
+}
+
+.error-message {
+  background-color: #fff5f5;
+  color: #c53030;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(197, 48, 48, 0.1);
+  border: 1px solid rgba(197, 48, 48, 0.1);
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .soft-register-bg {
+    padding: 1rem;
+  }
+  
+  .register-soft-form {
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+  }
+  
+  .register-soft-title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .register-soft-form input {
+    padding: 1rem 1.2rem;
+    font-size: 1rem;
+  }
+  
+  .register-button {
+    padding: 1rem;
+    font-size: 1.1rem;
+  }
+} 
