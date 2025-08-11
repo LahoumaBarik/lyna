@@ -65,7 +65,7 @@ import WeeklyCalendar from '../components/WeeklyCalendar';
 import axios from 'axios';
 
 function DashboardCoiffeuse() {
-  const { user } = useAuth();
+  const { user, socket } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -100,6 +100,24 @@ function DashboardCoiffeuse() {
       initializeProfileForm();
     }
   }, [user]);
+
+  // Real-time reservations updates for stylist
+  useEffect(() => {
+    if (!socket) return;
+    const onReservationsChanged = () => {
+      fetchAppointments();
+      fetchStats();
+    };
+    const onAvailabilityChanged = () => {
+      // WeeklyCalendar will refetch on prop/state change via its own hooks
+    };
+    socket.on('reservations_changed', onReservationsChanged);
+    socket.on('availability_changed', onAvailabilityChanged);
+    return () => {
+      socket.off('reservations_changed', onReservationsChanged);
+      socket.off('availability_changed', onAvailabilityChanged);
+    };
+  }, [socket]);
 
   const initializeProfileForm = () => {
     if (user) {

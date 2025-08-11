@@ -4,6 +4,7 @@ const { auth, requireRole } = require('../middleware/auth');
 const User = require('../models/User');
 
 const router = express.Router();
+const { sendToRole } = require('../utils/socketIO');
 
 // Validation middleware for coiffeuse creation
 const validateCoiffeuse = [
@@ -109,6 +110,15 @@ router.post('/', auth, requireRole('admin'), async (req, res) => {
 
     const user = new User(userData);
     await user.save();
+    try {
+      sendToRole('admin', 'stylists_changed', { action: 'created', stylist: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone
+      }});
+    } catch (e) {}
     res.status(201).json({ 
       message: 'Coiffeuse créée avec succès',
       user: {
@@ -173,6 +183,9 @@ router.put('/:id', auth, requireRole('admin'), async (req, res) => {
 
     const user = await User.findOneAndUpdate({ _id: id, role: 'stylist' }, updates, { new: true });
     if (!user) return res.status(404).json({ message: 'Coiffeuse non trouvée' });
+    try {
+      sendToRole('admin', 'stylists_changed', { action: 'updated', stylist: user });
+    } catch (e) {}
     res.json({ 
       message: 'Coiffeuse modifiée avec succès',
       user 
@@ -208,6 +221,9 @@ router.delete('/:id', auth, requireRole('admin'), async (req, res) => {
     const { id } = req.params;
     const user = await User.findOneAndDelete({ _id: id, role: 'stylist' });
     if (!user) return res.status(404).json({ message: 'Coiffeuse non trouvée' });
+    try {
+      sendToRole('admin', 'stylists_changed', { action: 'deleted', id });
+    } catch (e) {}
     res.json({ message: 'Coiffeuse supprimée avec succès' });
   } catch (err) {
     if (process.env.NODE_ENV === 'development') {

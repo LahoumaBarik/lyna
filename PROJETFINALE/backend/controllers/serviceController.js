@@ -1,4 +1,5 @@
 const { Service } = require('../models');
+const { sendToRole } = require('../utils/socketIO');
 const { validationResult } = require('express-validator');
 
 // Ajouter un service (POST)
@@ -70,7 +71,7 @@ exports.ajouterService = async (req, res) => {
     });
 
     await service.save();
-    res.status(201).json({ 
+    const payload = { 
       message: 'Service ajouté avec succès', 
       service: {
         _id: service._id,
@@ -81,7 +82,16 @@ exports.ajouterService = async (req, res) => {
         category: service.category,
         stylist: service.stylist
       }
-    });
+    };
+
+    // Emit real-time update to admin dashboards
+    try {
+      sendToRole('admin', 'services_changed', { action: 'created', service: payload.service });
+    } catch (e) {
+      // non-blocking
+    }
+
+    res.status(201).json(payload);
   } catch (error) {
     // Log full error in development
     if (process.env.NODE_ENV === 'development') {
@@ -141,6 +151,19 @@ exports.modifierService = async (req, res) => {
     const updates = req.body;
     const service = await Service.findByIdAndUpdate(id, updates, { new: true });
     if (!service) return res.status(404).json({ message: 'Service non trouvé' });
+    // Emit real-time update
+    try {
+      const formatted = {
+        _id: service._id,
+        name: service.name,
+        description: service.description,
+        duration: service.duration?.base || service.duration,
+        price: service.pricing?.basePrice || service.price,
+        category: service.category,
+        stylist: service.stylist
+      };
+      sendToRole('admin', 'services_changed', { action: 'updated', service: formatted });
+    } catch (e) {}
     res.json({ message: 'Service modifié avec succès', service });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
@@ -153,6 +176,9 @@ exports.supprimerService = async (req, res) => {
     const { id } = req.params;
     const service = await Service.findByIdAndDelete(id);
     if (!service) return res.status(404).json({ message: 'Service non trouvé' });
+    try {
+      sendToRole('admin', 'services_changed', { action: 'deleted', id });
+    } catch (e) {}
     res.json({ message: 'Service supprimé avec succès' });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });

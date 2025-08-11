@@ -129,6 +129,13 @@ const sendToStylist = (stylistId, event, data) => {
   }
 };
 
+// Send to a specific user room for custom events
+const sendToUser = (userId, event, data) => {
+  if (io) {
+    io.to(`user:${userId}`).emit(event, data);
+  }
+};
+
 // Broadcast system-wide announcements
 const broadcastAnnouncement = (announcement) => {
   if (io) {
@@ -142,6 +149,7 @@ module.exports = {
   sendAppointmentUpdate,
   sendToRole,
   sendToStylist,
+  sendToUser,
   broadcastAnnouncement,
   getIO: () => io
 }; 

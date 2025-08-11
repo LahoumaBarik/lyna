@@ -60,6 +60,7 @@ import {
 } from '@mui/icons-material';
 import WeeklyCalendar from '../components/WeeklyCalendar';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 // Valid service categories
 const CATEGORIES = [
@@ -85,6 +86,7 @@ function TabPanel({ children, value, index }) {
 
 function DashboardAdmin() {
   const navigate = useNavigate();
+  const { socket } = useAuth();
   const [tab, setTab] = useState(0);
   
   // Services State
@@ -182,6 +184,30 @@ function DashboardAdmin() {
       fetchApplications();
     }
   }, [statusFilter, page]);
+
+  // Real-time updates
+  useEffect(() => {
+    if (!socket) return;
+    const onServicesChanged = () => { if (tab === 0) fetchServices(); };
+    const onStylistsChanged = () => { if (tab === 1) fetchCoiffeuses(); };
+    const onAvailabilityChanged = () => { if (tab === 2) fetchDispos(); };
+    const onReservationsChanged = () => { if (tab === 3) fetchReservations(); };
+    const onApplicationsChanged = () => { if (tab === 4) fetchApplications(); };
+
+    socket.on('services_changed', onServicesChanged);
+    socket.on('stylists_changed', onStylistsChanged);
+    socket.on('availability_changed', onAvailabilityChanged);
+    socket.on('reservations_changed', onReservationsChanged);
+    socket.on('applications_changed', onApplicationsChanged);
+
+    return () => {
+      socket.off('services_changed', onServicesChanged);
+      socket.off('stylists_changed', onStylistsChanged);
+      socket.off('availability_changed', onAvailabilityChanged);
+      socket.off('reservations_changed', onReservationsChanged);
+      socket.off('applications_changed', onApplicationsChanged);
+    };
+  }, [socket, tab, statusFilter, page]);
 
   const handleForbidden = () => {
     localStorage.removeItem('accessToken');

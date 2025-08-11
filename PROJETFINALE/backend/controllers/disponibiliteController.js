@@ -1,4 +1,5 @@
 const { Disponibilite } = require('../models');
+const { sendToRole, sendToStylist } = require('../utils/socketIO');
 
 // Fonction utilitaire pour convertir le jour et l'heure en Date
 const createDateFromDayAndTime = (jour, heure) => {
@@ -153,10 +154,18 @@ exports.ajouterDisponibilite = async (req, res) => {
     });
     
     await disponibilite.save();
-    res.status(201).json({ 
+    const payload = { 
       message: 'Créneau ajouté avec succès', 
       disponibilite 
-    });
+    };
+
+    // Emit to admins and the stylist
+    try {
+      sendToRole('admin', 'availability_changed', { action: 'created', disponibilite });
+      sendToStylist(disponibilite.stylist.toString(), 'availability_changed', { action: 'created', disponibilite });
+    } catch (e) {}
+
+    res.status(201).json(payload);
   } catch (error) {
     // Log full error in development
     if (process.env.NODE_ENV === 'development') {
@@ -241,6 +250,10 @@ exports.modifierDisponibilite = async (req, res) => {
     }
     const dispo = await Disponibilite.findByIdAndUpdate(id, updates, { new: true });
     if (!dispo) return res.status(404).json({ message: 'Disponibilité non trouvée' });
+    try {
+      sendToRole('admin', 'availability_changed', { action: 'updated', disponibilite: dispo });
+      sendToStylist(dispo.stylist.toString(), 'availability_changed', { action: 'updated', disponibilite: dispo });
+    } catch (e) {}
     res.json({ message: 'Disponibilité modifiée avec succès', disponibilite: dispo });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
@@ -253,6 +266,10 @@ exports.supprimerDisponibilite = async (req, res) => {
     const { id } = req.params;
     const dispo = await Disponibilite.findByIdAndDelete(id);
     if (!dispo) return res.status(404).json({ message: 'Disponibilité non trouvée' });
+    try {
+      sendToRole('admin', 'availability_changed', { action: 'deleted', id });
+      sendToStylist(dispo.stylist.toString(), 'availability_changed', { action: 'deleted', id });
+    } catch (e) {}
     res.json({ message: 'Disponibilité supprimée avec succès' });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
@@ -379,6 +396,11 @@ exports.ajouterMaDisponibilite = async (req, res) => {
 
     await disponibilite.save();
 
+    try {
+      sendToRole('admin', 'availability_changed', { action: 'created', disponibilite });
+      sendToStylist(stylistId.toString(), 'availability_changed', { action: 'created', disponibilite });
+    } catch (e) {}
+
     res.status(201).json({ 
       message: 'Disponibilité ajoutée avec succès', 
       disponibilite 
@@ -445,6 +467,10 @@ exports.modifierMaDisponibilite = async (req, res) => {
 
     const dispo = await Disponibilite.findByIdAndUpdate(id, updates, { new: true });
     res.json({ message: 'Disponibilité modifiée avec succès', disponibilite: dispo });
+    try {
+      sendToRole('admin', 'availability_changed', { action: 'updated', disponibilite: dispo });
+      sendToStylist(stylistId.toString(), 'availability_changed', { action: 'updated', disponibilite: dispo });
+    } catch (e) {}
   } catch (error) {
     console.error('Modify stylist disponibilite error:', error);
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
@@ -465,6 +491,10 @@ exports.supprimerMaDisponibilite = async (req, res) => {
 
     const dispo = await Disponibilite.findByIdAndDelete(id);
     res.json({ message: 'Disponibilité supprimée avec succès' });
+    try {
+      sendToRole('admin', 'availability_changed', { action: 'deleted', id });
+      sendToStylist(stylistId.toString(), 'availability_changed', { action: 'deleted', id });
+    } catch (e) {}
   } catch (error) {
     console.error('Delete stylist disponibilite error:', error);
     res.status(500).json({ message: 'Erreur serveur', error: error.message });

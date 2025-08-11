@@ -1,5 +1,6 @@
 const { Reservation, Service, Disponibilite, User, Analytics, WaitList, Notification } = require('../models');
 const { sendNotification } = require('../utils/notifications');
+const { sendNotificationToUser, sendToRole, sendToStylist, sendToUser } = require('../utils/socketIO');
 const moment = require('moment-timezone');
 const { validateReservationSlot, calculatePricing } = require('../utils/reservationHelpers');
 
@@ -189,6 +190,15 @@ exports.creerReservation = async (req, res) => {
     } catch (notificationError) {
       console.log('⚠️ Notification failed:', notificationError.message);
     }
+
+    // Emit real-time updates to involved users and admins
+    try {
+      const eventPayload = { action: 'created', reservation };
+      sendNotificationToUser(req.user._id.toString(), { type: 'reservation', title: 'Reservation created', data: { id: reservation._id } });
+      sendToUser(req.user._id.toString(), 'reservations_changed', eventPayload);
+      sendToStylist(stylistId.toString(), 'reservations_changed', eventPayload);
+      sendToRole('admin', 'reservations_changed', eventPayload);
+    } catch (e) {}
 
     // Update analytics
     await Analytics.findOneAndUpdate(
@@ -485,6 +495,15 @@ exports.supprimerReservation = async (req, res) => {
       console.warn('Notification failed:', notificationError.message);
     }
 
+    // Emit real-time updates
+    try {
+      const payload = { action: 'cancelled', reservationId: reservation._id };
+      sendNotificationToUser(reservation.client._id.toString(), { type: 'reservation', title: 'Reservation cancelled', data: { id: reservation._id } });
+      sendToUser(reservation.client._id.toString(), 'reservations_changed', payload);
+      sendToStylist(reservation.stylist._id.toString(), 'reservations_changed', payload);
+      sendToRole('admin', 'reservations_changed', payload);
+    } catch (e) {}
+
     // Update analytics
     await Analytics.findOneAndUpdate(
       { date: moment(reservation.date).format('YYYY-MM-DD') },
@@ -740,6 +759,15 @@ exports.modifierReservation = async (req, res) => {
     } catch (notifyError) {
       console.warn('Notification failed:', notifyError.message);
     }
+
+    // Real-time broadcast
+    try {
+      const eventPayload = { action: 'updated', reservation };
+      sendNotificationToUser(reservation.client._id.toString(), { type: 'reservation', title: 'Reservation updated', data: { id: reservation._id } });
+      sendToUser(reservation.client._id.toString(), 'reservations_changed', eventPayload);
+      sendToStylist(reservation.stylist._id.toString(), 'reservations_changed', eventPayload);
+      sendToRole('admin', 'reservations_changed', eventPayload);
+    } catch (e) {}
 
     res.json({
       message: 'Reservation modified successfully',

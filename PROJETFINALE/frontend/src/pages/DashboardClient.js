@@ -52,7 +52,7 @@ import {
 import axios from 'axios';
 
 function DashboardClient() {
-  const { user } = useAuth();
+  const { user, socket } = useAuth();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -135,6 +135,31 @@ function DashboardClient() {
     }
   }, [user]);
 
+  // Real-time reservations updates
+  useEffect(() => {
+    if (!socket) return;
+    const onReservationsChanged = () => {
+      // Refetch without reload
+      (async () => {
+        try {
+          setLoading(true);
+          const token = localStorage.getItem('accessToken');
+          const response = await axios.get('/reservations', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (Array.isArray(response.data)) setReservations(response.data);
+          else if (response.data?.reservations) setReservations(response.data.reservations);
+        } catch (e) {
+          // ignore
+        } finally {
+          setLoading(false);
+        }
+      })();
+    };
+    socket.on('reservations_changed', onReservationsChanged);
+    return () => socket.off('reservations_changed', onReservationsChanged);
+  }, [socket]);
+
   // Separate upcoming and past reservations
   const now = new Date();
   const upcomingReservations = reservations.filter(r => 
@@ -154,8 +179,8 @@ function DashboardClient() {
       setSuccess('Rendez-vous annulé avec succès !');
       setTimeout(() => setSuccess(''), 3000);
       
-      // Refresh reservations list immediately
-      window.location.reload();
+      // Update list without reload
+      setReservations(prev => prev.filter(r => r._id !== id));
     } catch (err) {
       setError('Erreur lors de l\'annulation du rendez-vous');
     }
@@ -174,8 +199,8 @@ function DashboardClient() {
       setSuccess('Rendez-vous supprimé avec succès !');
       setTimeout(() => setSuccess(''), 3000);
       
-      // Refresh reservations list immediately
-      window.location.reload();
+      // Update list without reload
+      setReservations(prev => prev.filter(r => r._id !== id));
     } catch (err) {
       setError('Erreur lors de la suppression du rendez-vous');
     }
@@ -244,8 +269,8 @@ function DashboardClient() {
         setNewDate('');
         setNewTime('');
         
-        // Refresh the page to show updated data
-        window.location.reload();
+        // Update locally without reload
+        setReservations(prev => prev.map(r => r._id === modifyingReservation._id ? { ...r, date: newDate, startTime: newTime } : r));
       }
     } catch (error) {
       setError(error.response?.data?.message || 'Erreur lors de la modification');

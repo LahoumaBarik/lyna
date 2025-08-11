@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import {
   Box,
   Typography,
@@ -57,6 +58,7 @@ const TIME_SLOTS = [
 ];
 
 function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
+  const { socket } = useAuth();
   const [weeklySchedule, setWeeklySchedule] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -75,6 +77,16 @@ function WeeklyCalendar({ user, isAdmin = false, selectedStylist = null }) {
       fetchWeeklySchedule();
     }
   }, [user, selectedStylist, currentWeek]);
+
+  // Real-time: refetch availability on events
+  useEffect(() => {
+    if (!socket) return;
+    const onAvailabilityChanged = () => {
+      fetchWeeklySchedule();
+    };
+    socket.on('availability_changed', onAvailabilityChanged);
+    return () => socket.off('availability_changed', onAvailabilityChanged);
+  }, [socket, selectedStylist, currentWeek]);
 
   const getWeekDates = (date) => {
     const dates = {};

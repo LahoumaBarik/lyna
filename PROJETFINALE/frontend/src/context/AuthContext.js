@@ -292,6 +292,16 @@ export const AuthProvider = ({ children }) => {
       });
     });
 
+    // When backend informs that the user was updated (e.g., role change)
+    socket.on('user_updated', (payload) => {
+      if (payload?.user) {
+        dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: payload.user });
+        toast.success('Profil mis à jour');
+      } else {
+        refreshUserData().catch(() => {});
+      }
+    });
+
     return socket;
   };
 

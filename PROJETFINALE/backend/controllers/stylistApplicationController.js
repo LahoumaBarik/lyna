@@ -1,6 +1,7 @@
 const { StylistApplication, User } = require('../models');
 const { sendNotification } = require('../utils/notifications');
 const { validationResult } = require('express-validator');
+const { sendToRole, sendNotificationToUser, sendToUser } = require('../utils/socketIO');
 
 // Submit a new stylist application
 exports.submitApplication = async (req, res) => {
@@ -60,6 +61,11 @@ exports.submitApplication = async (req, res) => {
     } catch (notificationError) {
       console.warn('Failed to send admin notification:', notificationError.message);
     }
+
+    // Emit real-time to admins list
+    try {
+      sendToRole('admin', 'applications_changed', { action: 'created', application: { id: application._id } });
+    } catch (e) {}
 
     res.status(201).json({
       message: 'Application submitted successfully',
@@ -238,6 +244,13 @@ exports.approveApplication = async (req, res) => {
       console.warn('Failed to send approval notification:', notificationError.message);
     }
 
+    try {
+      sendNotificationToUser(application.applicant._id.toString(), { type: 'application', title: 'Approved', data: { id: application._id } });
+      sendToRole('admin', 'applications_changed', { action: 'updated', id: application._id, status: 'approved' });
+      // Inform the applicant's session to refresh user data
+      sendToUser(application.applicant._id.toString(), 'user_updated', { user: user });
+    } catch (e) {}
+
     res.json({
       message: 'Application approved successfully',
       code: 'APPLICATION_APPROVED',
@@ -305,6 +318,11 @@ exports.rejectApplication = async (req, res) => {
     } catch (notificationError) {
       console.warn('Failed to send rejection notification:', notificationError.message);
     }
+
+    try {
+      sendNotificationToUser(application.applicant._id.toString(), { type: 'application', title: 'Rejected', data: { id: application._id } });
+      sendToRole('admin', 'applications_changed', { action: 'updated', id: application._id, status: 'rejected' });
+    } catch (e) {}
 
     res.json({
       message: 'Application rejected successfully',
@@ -374,6 +392,11 @@ exports.requestInterview = async (req, res) => {
     } catch (notificationError) {
       console.warn('Failed to send interview notification:', notificationError.message);
     }
+
+    try {
+      sendNotificationToUser(application.applicant._id.toString(), { type: 'application', title: 'Interview requested', data: { id: application._id } });
+      sendToRole('admin', 'applications_changed', { action: 'updated', id: application._id, status: 'interview_requested' });
+    } catch (e) {}
 
     res.json({
       message: 'Interview requested successfully',
