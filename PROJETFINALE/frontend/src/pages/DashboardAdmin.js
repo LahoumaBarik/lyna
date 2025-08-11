@@ -176,14 +176,15 @@ function DashboardAdmin() {
     }
     else if (tab === 3) fetchReservations();
     else if (tab === 4) fetchApplications();
-  }, [tab]);
+  }, [tab, page, statusFilter]); // Also refetch when pagination or filter changes
 
   // Refetch applications when filter changes
   useEffect(() => {
     if (tab === 4) {
+      setPage(1); // Reset to first page
       fetchApplications();
     }
-  }, [statusFilter, page]);
+  }, [statusFilter]);
 
   // Real-time updates
   useEffect(() => {
@@ -306,7 +307,13 @@ function DashboardAdmin() {
   const fetchApplications = async () => {
     try {
       setApplicationsLoading(true);
+      setApplicationsError(null);
+      
       const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('No access token available');
+      }
+      
       const response = await axios.get(`/stylist-applications?status=${statusFilter}&page=${page}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -315,11 +322,23 @@ function DashboardAdmin() {
         throw new Error('Erreur lors du chargement des candidatures');
       }
       
-      setApplications(response.data.applications);
-      setTotalPages(response.data.pagination.total);
+      // Ensure applications have the required structure
+      const validApplications = response.data.applications?.filter(app => 
+        app && app.applicant && app.stylistInfo
+      ) || [];
+      
+      setApplications(validApplications);
+      setTotalPages(response.data.pagination?.total || 1);
     } catch (error) {
       console.error('Error fetching applications:', error);
-      setApplicationsError('Erreur lors du chargement des candidatures');
+      if (error.response?.status === 401) {
+        setApplicationsError('Session expirée. Veuillez vous reconnecter.');
+      } else if (error.response?.status === 403) {
+        setApplicationsError('Accès refusé. Permissions insuffisantes.');
+      } else {
+        setApplicationsError('Erreur lors du chargement des candidatures');
+      }
+      setApplications([]);
     } finally {
       setApplicationsLoading(false);
     }
@@ -328,6 +347,10 @@ function DashboardAdmin() {
   const handleViewApplication = async (applicationId) => {
     try {
       const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('No access token available');
+      }
+      
       const response = await axios.get(`/stylist-applications/${applicationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -340,7 +363,13 @@ function DashboardAdmin() {
       setApplicationDialogOpen(true);
     } catch (error) {
       console.error('Error fetching application:', error);
-      setApplicationsError('Erreur lors du chargement de la candidature');
+      if (error.response?.status === 401) {
+        setApplicationsError('Session expirée. Veuillez vous reconnecter.');
+      } else if (error.response?.status === 403) {
+        setApplicationsError('Accès refusé. Permissions insuffisantes.');
+      } else {
+        setApplicationsError('Erreur lors du chargement de la candidature');
+      }
     }
   };
 
@@ -2173,6 +2202,16 @@ function DashboardAdmin() {
                     <Box display="flex" justifyContent="center" py={4}>
                       <CircularProgress />
                     </Box>
+                  ) : applicationsError ? (
+                    <Box p={3}>
+                      <Alert severity="error" action={
+                        <Button color="inherit" size="small" onClick={fetchApplications}>
+                          Réessayer
+                        </Button>
+                      }>
+                        {applicationsError}
+                      </Alert>
+                    </Box>
                   ) : applications.length === 0 ? (
                     <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                       <Typography variant="body1" color="text.secondary">
@@ -2198,10 +2237,10 @@ function DashboardAdmin() {
                               <TableCell>
                                 <Box>
                                   <Typography variant="subtitle2">
-                                    {application.applicant.firstName} {application.applicant.lastName}
+                                    {application.applicant?.firstName || 'N/A'} {application.applicant?.lastName || 'N/A'}
                                   </Typography>
                                   <Typography variant="body2" color="text.secondary">
-                                    {application.applicant.email}
+                                    {application.applicant?.email || 'Email non disponible'}
                                   </Typography>
                                 </Box>
                               </TableCell>
@@ -2213,19 +2252,19 @@ function DashboardAdmin() {
                                 />
                               </TableCell>
                               <TableCell>
-                                {application.stylistInfo.experience.years} ans
+                                {application.stylistInfo?.experience?.years || 0} ans
                               </TableCell>
                               <TableCell>
                                 <Box display="flex" flexWrap="wrap" gap={0.5}>
-                                  {application.stylistInfo.specializations.slice(0, 2).map(spec => (
+                                  {application.stylistInfo?.specializations?.slice(0, 2).map(spec => (
                                     <Chip
                                       key={spec}
                                       label={spec}
                                       size="small"
                                       variant="outlined"
                                     />
-                                  ))}
-                                  {application.stylistInfo.specializations.length > 2 && (
+                                  )) || []}
+                                  {application.stylistInfo?.specializations?.length > 2 && (
                                     <Chip
                                       label={`+${application.stylistInfo.specializations.length - 2}`}
                                       size="small"
@@ -2281,13 +2320,13 @@ function DashboardAdmin() {
                       <ListItem>
                         <ListItemText 
                           primary="Nom complet" 
-                          secondary={`${selectedApplication.applicant.firstName} ${selectedApplication.applicant.lastName}`} 
+                          secondary={`${selectedApplication.applicant?.firstName || 'N/A'} ${selectedApplication.applicant?.lastName || 'N/A'}`} 
                         />
                       </ListItem>
                       <ListItem>
                         <ListItemText 
                           primary="Email" 
-                          secondary={selectedApplication.applicant.email} 
+                          secondary={selectedApplication.applicant?.email || 'Email non disponible'} 
                         />
                       </ListItem>
                       <ListItem>

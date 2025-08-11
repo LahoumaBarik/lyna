@@ -381,7 +381,7 @@ export default function HomePage() {
 
           <Box className="services-grid-container">
             {services.map((service, index) => (
-              <Grow in timeout={1000 + index * 200}>
+              <Grow in timeout={1000 + index * 200} key={index}>
                 <Card
                   className="service-card modern-card hover-lift"
                   sx={{
@@ -597,7 +597,7 @@ export default function HomePage() {
 
           <Box className="testimonials-grid">
             {testimonials.map((testimonial, index) => (
-              <Grow in timeout={800 + index * 200}>
+              <Grow in timeout={800 + index * 200} key={index}>
                 <Card
                   className="testimonial-card"
                   sx={{
@@ -681,7 +681,7 @@ export default function HomePage() {
 
           <Box className="stats-grid">
             {stats.map((stat, index) => (
-              <Grow in timeout={800 + index * 200}>
+              <Grow in timeout={800 + index * 200} key={index}>
                 <Box className="stat-item">
                   <Box
                     sx={{

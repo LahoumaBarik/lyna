@@ -75,7 +75,7 @@ const EnhancedDashboardAdmin = () => {
 
       // Try to fetch real data, fall back to mock if needed
       try {
-        const response = await axios.get('/api/analytics/dashboard?period=30', {
+        const response = await axios.get('/analytics/dashboard?period=30', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setAnalyticsData(response.data);

@@ -13,7 +13,7 @@ import {
   Slide
 } from '@mui/material';
 import {
-  ExpandMore,
+  ExpandMore as ExpandMoreIcon,
   Help,
   AutoAwesome,
   Eco,

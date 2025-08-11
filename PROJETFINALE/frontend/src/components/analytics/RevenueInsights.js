@@ -78,7 +78,7 @@ const RevenueInsights = () => {
       setError(null);
       
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('/api/analytics/revenue', {
+      const response = await axios.get('/analytics/revenue', {
         headers: { Authorization: `Bearer ${token}` }
       });
       

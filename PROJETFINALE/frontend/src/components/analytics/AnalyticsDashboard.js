@@ -68,7 +68,7 @@ const AnalyticsDashboard = () => {
       setError(null);
       
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get(`/api/analytics/dashboard?period=${period}`, {
+              const response = await axios.get(`/analytics/dashboard?period=${period}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

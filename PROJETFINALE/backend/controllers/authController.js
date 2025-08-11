@@ -4,43 +4,8 @@ const { validationResult } = require('express-validator');
 const crypto = require('crypto');
 const { sendNotification } = require('../utils/notifications');
 
-// Enhanced JWT token generation
-const generateTokens = (userId, role) => {
-  const payload = { userId, role, type: 'access' };
-  
-  const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '15m',
-    issuer: 'salon-app',
-    audience: 'salon-users'
-  });
-  
-  const refreshToken = jwt.sign(
-    { ...payload, type: 'refresh' },
-    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
-    {
-      expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d',
-      issuer: 'salon-app',
-      audience: 'salon-users'
-    }
-  );
-  
-  return { accessToken, refreshToken };
-};
-
-// In-memory token storage (use Redis in production)
-const refreshTokens = new Map();
-
-// Store refresh token
-const storeRefreshToken = async (userId, refreshToken) => {
-  // In production, use Redis: await redis.setex(`refresh_token:${userId}`, 7 * 24 * 60 * 60, refreshToken);
-  refreshTokens.set(userId.toString(), refreshToken);
-};
-
-// Remove refresh token
-const removeRefreshToken = async (userId) => {
-  // In production, use Redis: await redis.del(`refresh_token:${userId}`);
-  refreshTokens.delete(userId.toString());
-};
+// Use the centralized token utilities
+const { generateTokens, storeRefreshToken, removeRefreshToken, validateRefreshToken } = require('../utils/tokenUtils');
 
 // Registration
 exports.register = async (req, res) => {
@@ -307,8 +272,8 @@ exports.refreshToken = async (req, res) => {
     }
 
     // Check if refresh token exists in storage
-    const storedToken = refreshTokens.get(decoded.userId.toString());
-    if (storedToken !== refreshToken) {
+    const isValidToken = await validateRefreshToken(decoded.userId, refreshToken);
+    if (!isValidToken) {
       return res.status(401).json({ 
         error: 'Invalid refresh token',
         code: 'INVALID_REFRESH_TOKEN',

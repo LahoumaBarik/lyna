@@ -62,7 +62,7 @@ const Reviews = () => {
   const fetchReviews = async () => {
     try {
       // Fetch featured reviews for display
-      const response = await axios.get('/api/reviews/featured');
+      const response = await axios.get('/reviews/featured');
       setReviews(response.data.reviews || []);
     } catch (error) {
       console.error('Error fetching reviews:', error);
@@ -74,7 +74,7 @@ const Reviews = () => {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      const response = await axios.get('/api/reservations?status=completed', {
+      const response = await axios.get('/reservations?status=completed', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -121,7 +121,7 @@ const Reviews = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.post('/api/reviews', {
+              await axios.post('/reviews', {
         reservationId: selectedReservation._id,
         ...newReview
       }, {
